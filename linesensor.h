@@ -1,6 +1,7 @@
 #ifndef _LINESENSOR_H
 #define _LINESENSOR_H
 
+#include <stdbool.h>
 #include <stdint.h>  /* uint8_t */
 #include <pthread.h>
 
@@ -10,9 +11,9 @@
 
 
 typedef struct {
-    uint8_t* sensors;
+    uint8_t* p_sensor_val;
     uint8_t gpio_pin;
-    uint8_t index;
+    bool* p_terminate;
 } SensorArgs;
 
 

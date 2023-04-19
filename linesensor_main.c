@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <unistd.h>  /* usleep() */
 #include <pigpio.h>
+#include <stdbool.h>
+#include <stdlib.h>  /* exit() */
+
 
 #include "linesensor.h"
 
@@ -10,53 +13,49 @@
 #define PIN_LINESENSOR_C    27
 #define PIN_LINESENSOR_R    22
 
-#define IDX_LINESENSOR_L    0
-#define IDX_LINESENSOR_C    1
-#define IDX_LINESENSOR_R    2
 
-#define VAL_LINESENSOR_L    0x01
-#define VAL_LINESENSOR_C    0x02
-#define VAL_LINESENSOR_R    0x04
+static volatile bool terminate = false;
 
-
-static volatile int terminate = 0;
 
 void handle_interrupt(int signal)
 {
     printf("\n\nInterrupt signal received. Terminating.\n");
-    terminate = 1;
+    terminate = true;
 }
 
 
 int main(int argc, char* argv[])
 {
-    gpioInitialise();
+    if (gpioInitialise() < 0) 
+    {
+        fprintf(stderr, "Failed to initialize pigpio\n");
+        exit(1);
+    }
 
     signal(SIGINT, handle_interrupt);
 
     uint8_t line_sensor_vals[3] = { 0 };
 
     SensorArgs args_left;
-    args_left.sensors=line_sensor_vals;
-    args_left.gpio_pin=(uint8_t)PIN_LINESENSOR_L;
-    args_left.index=IDX_LINESENSOR_L;
+    args_left.p_sensor_val = &line_sensor_vals[0];
+    args_left.gpio_pin = (uint8_t)PIN_LINESENSOR_L;
+    args_left.p_terminate = &terminate;
 
     SensorArgs args_center;
-    args_center.sensors=line_sensor_vals;
-    args_center.gpio_pin=(uint8_t)PIN_LINESENSOR_C;
-    args_center.index=IDX_LINESENSOR_C;
+    args_center.p_sensor_val = &line_sensor_vals[1];
+    args_center.gpio_pin = (uint8_t)PIN_LINESENSOR_C;
+    args_center.p_terminate = &terminate;
 
     SensorArgs args_right;
-    args_right.sensors=line_sensor_vals;
-    args_right.gpio_pin=(uint8_t)PIN_LINESENSOR_R;
-    args_right.index=IDX_LINESENSOR_R;
+    args_right.p_sensor_val = &line_sensor_vals[2];
+    args_right.gpio_pin = (uint8_t)PIN_LINESENSOR_R;
+    args_center.p_terminate = &terminate;
 
     pthread_t threads[3];
 
     pthread_create(&threads[0], NULL, read_sensor, (void*)&args_left);
     pthread_create(&threads[1], NULL, read_sensor, (void*)&args_center);
     pthread_create(&threads[1], NULL, read_sensor, (void*)&args_right);
-
 
     while (!terminate)
     {

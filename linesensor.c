@@ -5,9 +5,10 @@
 
 void read_sensor(SensorArgs* args)
 {
-    while (1)
+    while (!*(args->p_terminate))
     {
-        args->sensors[args->index] = gpioRead(args->gpio_pin);
+        *(args->p_sensor_val) = gpioRead(args->gpio_pin);
         usleep(50);
     }
 }
+
