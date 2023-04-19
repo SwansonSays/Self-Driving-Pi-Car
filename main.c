@@ -1,17 +1,20 @@
 #include <pthread.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>  /* usleep() */
-#include <pigpio.h>
-#include <stdbool.h>
 #include <stdlib.h>  /* exit() */
 
+#include <pigpio.h>
 
 #include "sensor.h"
+
 
 #define PIN_LINESENSOR_L    17
 #define PIN_LINESENSOR_C    27
 #define PIN_LINESENSOR_R    22
+
+#define NUM_LINE_SENSORS    3
 
 
 static volatile bool terminate = false;
@@ -34,33 +37,30 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, handle_interrupt);
 
-    uint8_t line_sensor_vals[3] = { 0 };
+    uint8_t line_sensor_pins[] = {
+        (uint8_t)PIN_LINESENSOR_L,
+        (uint8_t)PIN_LINESENSOR_C,
+        (uint8_t)PIN_LINESENSOR_R
+    };
 
-    SensorArgs args_left;
-    args_left.p_sensor_val = &line_sensor_vals[0];
-    args_left.gpio_pin = (uint8_t)PIN_LINESENSOR_L;
-    args_left.p_terminate = &terminate;
+    uint8_t line_sensor_vals[NUM_LINE_SENSORS] = { 0 };
+    SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
+    pthread_t threads[NUM_LINE_SENSORS];
 
-    SensorArgs args_center;
-    args_center.p_sensor_val = &line_sensor_vals[1];
-    args_center.gpio_pin = (uint8_t)PIN_LINESENSOR_C;
-    args_center.p_terminate = &terminate;
-
-    SensorArgs args_right;
-    args_right.p_sensor_val = &line_sensor_vals[2];
-    args_right.gpio_pin = (uint8_t)PIN_LINESENSOR_R;
-    args_center.p_terminate = &terminate;
-
-    pthread_t threads[3];
-
-    pthread_create(&threads[0], NULL, read_sensor, (void*)&args_left);
-    pthread_create(&threads[1], NULL, read_sensor, (void*)&args_center);
-    pthread_create(&threads[1], NULL, read_sensor, (void*)&args_right);
+    for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
+    {
+        SensorArgs* args = malloc(sizeof(SensorArgs));
+        args->p_sensor_val = &line_sensor_vals[i];
+        args->gpio_pin = line_sensor_pins[i];
+        args->p_terminate = &terminate;
+        /* Keep track of the pointer so it can be freed later */
+        line_sensor_args[i] = args;
+        pthread_create(&threads[i], NULL, read_sensor, (void*)args);
+    }
 
     while (!terminate)
     {
         printf("%u, %u, %u\n\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
-        usleep(100);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
@@ -102,14 +102,18 @@ int main(int argc, char* argv[])
         {
             printf("No sensors are active\n");
         }
+        usleep(100);
     }
 
-    pthread_join(&threads[0], NULL);
-    pthread_join(&threads[1], NULL);
-    pthread_join(&threads[2], NULL);
+    /* Clean up the line sensor thread routines and memory */
+    for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
+    {
+        pthread_join(&threads[i], NULL);
+        free(line_sensor_args[i]);
+        line_sensor_args[i] = NULL;
+    }
 
     gpioTerminate();
-
     pthread_exit(NULL);
     return 0;
 }
