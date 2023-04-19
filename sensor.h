@@ -1,5 +1,5 @@
-#ifndef _LINESENSOR_H
-#define _LINESENSOR_H
+#ifndef _SENSOR_H
+#define _SENSOR_H
 
 #include <stdbool.h>
 #include <stdint.h>  /* uint8_t */
@@ -20,4 +20,4 @@ typedef struct {
 void read_sensor(SensorArgs* args);
 
 
-#endif  /* _LINESENSOR_H */
+#endif  /* _SENSOR_H */

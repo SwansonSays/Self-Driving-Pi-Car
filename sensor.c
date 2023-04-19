@@ -1,4 +1,4 @@
-#include "linesensor.h"
+#include "sensor.h"
 #include <pigpio.h>
 #include <stdio.h>
 
