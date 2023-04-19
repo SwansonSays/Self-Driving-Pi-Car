@@ -7,7 +7,7 @@
 #include <stdlib.h>  /* exit() */
 
 
-#include "linesensor.h"
+#include "sensor.h"
 
 #define PIN_LINESENSOR_L    17
 #define PIN_LINESENSOR_C    27
