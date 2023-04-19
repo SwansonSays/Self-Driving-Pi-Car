@@ -1,5 +1,6 @@
 #include "sensor.h"
 #include <pigpio.h>
+#include <unistd.h>     /* usleep() */
 #include <stdio.h>
 
 
