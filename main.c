@@ -14,7 +14,15 @@
 #define PIN_LINESENSOR_C    27
 #define PIN_LINESENSOR_R    22
 
+#define PIN_OBSTSENS_FRONTL 6
+#define PIN_OBSTSENS_FRONTC 5
+#define PIN_OBSTSENS_FRONTR 13
+#define PIN_OBSTSENS_SIDEL 16
+#define PIN_OBSTSENS_SIDER 16
+
+
 #define NUM_LINE_SENSORS    3
+#define NUM_OBST_SENSORS    5
 
 
 static volatile bool terminate = false;
@@ -45,7 +53,19 @@ int main(int argc, char* argv[])
 
     uint8_t line_sensor_vals[NUM_LINE_SENSORS] = { 0 };
     SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
-    pthread_t threads[NUM_LINE_SENSORS];
+    pthread_t line_sensor_threads[NUM_LINE_SENSORS];
+
+    uint8_t obst_sensor_pins[] = {
+        (uint8_t)PIN_OBSTSENS_FRONTL,
+        (uint8_t)PIN_OBSTSENS_FRONTC,
+        (uint8_t)PIN_OBSTSENS_FRONTR,
+        (uint8_t)PIN_OBSTSENS_SIDEL,
+        (uint8_t)PIN_OBSTSENS_SIDER
+    };
+
+    uint8_t obst_sensor_vals[NUM_OBST_SENSORS] = { 0 };
+    SensorArgs* obst_sensor_args[NUM_OBST_SENSORS];
+    pthread_t obst_sensor_threads[NUM_LINE_SENSORS];
 
     for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
     {
@@ -55,7 +75,17 @@ int main(int argc, char* argv[])
         args->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
         line_sensor_args[i] = args;
-        pthread_create(&threads[i], NULL, read_sensor, (void*)args);
+        pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)args);
+    }
+
+    for (size_t i = 0; i < NUM_OBST_SENSORS; i++) {
+        SensorArgs* args = malloc(sizeof(SensorArgs));
+        args->p_sensor_val = &obst_sensor_vals[i];
+        args->gpio_pin = obst_sensor_pins[i];
+        args->p_terminate = &terminate;
+
+        obst_sensor_args[i] = args;
+        pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)args);
     }
 
     while (!terminate)
@@ -108,9 +138,15 @@ int main(int argc, char* argv[])
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
     {
-        pthread_join(&threads[i], NULL);
+        pthread_join(&line_sensor_threads[i], NULL);
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
+    }
+
+    for (size_t i = 0; i < NUM_OBST_SENSORS; ++i) {
+        pthread_join(&obst_sensor_threads[i], NULL);
+        free(obst_sensor_args[i]);
+        obst_sensor_args[i] = NULL;
     }
 
     gpioTerminate();
