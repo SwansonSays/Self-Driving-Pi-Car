@@ -24,7 +24,8 @@ USELIB = USE_DEV_LIB
 
 DEBUG = -D $(USELIB) 
 ifeq ($(USELIB), USE_DEV_LIB)
-    LIB = -lbcm2835 -lm -lpigpio -lrt -lpthread
+    #LIB = -lbcm2835 -lm -lpigpio -lrt -lpthread
+    LIB = -lm -lpigpio -lrt -lpthread
 else ifeq ($(USELIB), USE_WIRINGPI_LIB)
     LIB = -lwiringPi -lm 
 
@@ -52,7 +53,8 @@ ${DIR_BIN}/%.o : $(DIR_7366r)/%.c
 	$(CC) $(CFLAGS) -c  $< -o $@ $(LIB)
 
 ${DIR_BIN}/%.o : $(Sensor)/%.c
-	$(CC) $(CFLAGS) -c  $< -o $@ $(LIB)
+	$(CC) $(CFLAGS) -c  $< -o $@ $(LIB) -I $(DIR_Config) -I $(DIR_MotorDriver) -I $(DIR_PCA9685)
+
 clean :
 	rm $(DIR_BIN)/*.* 
 	rm $(TARGET)
