@@ -24,6 +24,7 @@
 
 #define NUM_LINE_SENSORS    3
 #define NUM_OBST_SENSORS    5
+#define NUM_MOTORS          2
 
 
 static volatile bool terminate = false;
@@ -66,16 +67,14 @@ int main(int argc, char* argv[])
     int speedA = 100;
     int speedB = 100;
 
+    /* GPIO pins for the line sensors */
     uint8_t line_sensor_pins[] = {
         (uint8_t)PIN_LINESENSOR_L,
         (uint8_t)PIN_LINESENSOR_C,
         (uint8_t)PIN_LINESENSOR_R
     };
 
-    uint8_t line_sensor_vals[NUM_LINE_SENSORS] = { 0 };
-    SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
-    pthread_t line_sensor_threads[NUM_LINE_SENSORS];
-
+    /* GPIO pins for the obstacle sensors */
     uint8_t obst_sensor_pins[] = {
         (uint8_t)PIN_OBSTSENS_FRONTL,
         (uint8_t)PIN_OBSTSENS_FRONTC,
@@ -84,10 +83,25 @@ int main(int argc, char* argv[])
         (uint8_t)PIN_OBSTSENS_SIDER
     };
 
+    /* GPIO pins for the motor speed counter */
+    uint8_t counter_pins[] = {
+        (uint8_t)SPI0_CE0,
+        (uint8_t)SPI0_CE1    
+    };
+
+    uint8_t line_sensor_vals[NUM_LINE_SENSORS] = { 0 };
+    SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
+    pthread_t line_sensor_threads[NUM_LINE_SENSORS];
+    
     uint8_t obst_sensor_vals[NUM_OBST_SENSORS] = { 0 };
     SensorArgs* obst_sensor_args[NUM_OBST_SENSORS];
     pthread_t obst_sensor_threads[NUM_LINE_SENSORS];
 
+    double hall_sensor_vals[NUM_MOTORS] = { 0 };    
+    CounterArgs* hall_sensor_args[NUM_MOTORS];
+    pthread_t hall_sensor_threads[NUM_MOTORS];
+
+    /* Create thread routines for the line sensors */
     for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
     {
         SensorArgs* args = malloc(sizeof(SensorArgs));
@@ -99,43 +113,36 @@ int main(int argc, char* argv[])
         pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)args);
     }
 
+    /* Create thread routines for the obstacle sensors */
     for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
     {
         SensorArgs* args = malloc(sizeof(SensorArgs));
         args->p_sensor_val = &obst_sensor_vals[i];
         args->gpio_pin = obst_sensor_pins[i];
         args->p_terminate = &terminate;
-
+        /* Keep track of the pointer so it can be freed later */
         obst_sensor_args[i] = args;
         pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)args);
     }
 
-    /* Directions must be alternated because the motors are mounted in 
-     * opposite orientations. Both motors will turn forward relative to the car. */
-    Motor_Run(MOTORA, FORWARD, speedB);
-    Motor_Run(MOTORB, BACKWARD, speedA);
-
-    /* Pins for the motor speed counter */
-    uint8_t counter_pins[] = {
-        (uint8_t)SPI0_CE0,
-        (uint8_t)SPI0_CE1    
-    };
-    
-    double hall_sensor_vals[2] = { 0 };    
-    CounterArgs* hall_sensor_args[2];
-    pthread_t hall_sensor_threads[2];
-    
     /* Create thread routines for the motors */
-    for (size_t i = 0; i < 2; i++){
+    for (size_t i = 0; i < NUM_MOTORS; i++)
+    {
         CounterArgs* args = malloc(sizeof(CounterArgs));
         args->speed_val = &hall_sensor_vals[i];
         args->chip_enable = counter_pins[i];
         args->p_terminate = &terminate;
-        
+        /* Keep track of the pointer so it can be freed later */
         hall_sensor_args[i] = args;
         pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)args);
     }
 
+    /* Directions must be alternated because the motors are mounted
+     * in opposite orientations. Both motors will turn forward relative 
+     * to the car. */
+    Motor_Run(MOTORA, FORWARD, speedB);
+    Motor_Run(MOTORB, BACKWARD, speedA);
+    
     while (!terminate)
     {
         printf("%u, %u, %u\n\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
