@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>  /* usleep() */
 #include <stdlib.h>  /* exit() */
+#include "MotorDriver.h"
 
 #include <pigpio.h>
 
