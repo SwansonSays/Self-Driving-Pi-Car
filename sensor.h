@@ -1,6 +1,7 @@
 #ifndef _SENSOR_H
 #define _SENSOR_H
 
+
 #include <stdbool.h>
 #include <stdint.h>  /* uint8_t */
 #include <pthread.h>
@@ -16,17 +17,15 @@ typedef struct {
     bool* p_terminate;
 } SensorArgs;
 
-typedef struct{
-
+typedef struct {
   double* speed_val;
-
   uint8_t chip_enable;
-
   bool* p_terminate;
-
 } CounterArgs;
 
 void read_sensor(SensorArgs* args);
 
 void read_counter(CounterArgs* args);
+
+
 #endif  /* _SENSOR_H */
