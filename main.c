@@ -17,8 +17,8 @@
 #define PIN_OBSTSENS_FRONTL 6
 #define PIN_OBSTSENS_FRONTC 5
 #define PIN_OBSTSENS_FRONTR 13
-#define PIN_OBSTSENS_SIDEL 16
-#define PIN_OBSTSENS_SIDER 16
+#define PIN_OBSTSENS_SIDEL  16
+#define PIN_OBSTSENS_SIDER  16
 
 
 #define NUM_LINE_SENSORS    3
@@ -37,6 +37,13 @@ void handle_interrupt(int signal)
 
 int main(int argc, char* argv[])
 {
+    /* Initialize motor driver */
+    if(DEV_ModuleInit()) 
+    {
+        exit(1);
+    }
+
+    /* Initialize pigpio library */
     if (gpioInitialise() < 0) 
     {
         fprintf(stderr, "Failed to initialize pigpio\n");
@@ -87,6 +94,47 @@ int main(int argc, char* argv[])
         obst_sensor_args[i] = args;
         pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)args);
     }
+
+	int ret = initLS7336RChip(SPI0_CE0);
+	int retTwo = initLS7336RChip(SPI0_CE1);
+
+	if(ret!=0){
+	    printf("Error initializing the LS7336R chip. Error code: %d\n",ret);
+	}
+	if(retTwo!=0){
+		printf("Error initializing the LS7336R chip. Error code: %d\n",retTwo);
+	}
+	int speedA = 100;
+    int speedB = 100;
+
+	Motor_Init();
+
+    printf("Motor_Run\r\n");
+    /* Directions must be alternated because the motors are mounted in 
+     * opposite orientations. Both motors will turn forward relative to the car. */
+	Motor_Run(MOTORA, FORWARD, speedB);
+    Motor_Run(MOTORB, BACKWARD, speedA);
+
+    /* Pins for the motor speed counter */
+	uint8_t counter_pins[] = {
+		(uint8_t)SPI0_CE0,
+		(uint8_t)SPI0_CE1	
+	};
+	
+	double hall_sensor_vals[2] = { 0 };	
+	CounterArgs* hall_sensor_args[2];
+	pthread_t threads[2];
+	
+    /* Create thread routines for the motors */
+	for (size_t i = 0; i < 2; i++){
+		CounterArgs* args = malloc(sizeof(CounterArgs));
+		args->speed_val = &hall_sensor_vals[i];
+		args->chip_enable = counter_pins[i];
+		args->p_terminate = &terminate;
+		
+		hall_sensor_args[i] = args;
+		pthread_create(&threads[i], NULL, read_counter, (void*)args);
+	}
 
     while (!terminate)
     {
@@ -143,13 +191,28 @@ int main(int argc, char* argv[])
         line_sensor_args[i] = NULL;
     }
 
-    for (size_t i = 0; i < NUM_OBST_SENSORS; ++i) {
+    /* Clean up the obstacle sensor thread routines and memory */
+    for (size_t i = 0; i < NUM_OBST_SENSORS; ++i) 
+    {
         pthread_join(&obst_sensor_threads[i], NULL);
         free(obst_sensor_args[i]);
         obst_sensor_args[i] = NULL;
     }
 
+    /* Clean up the motor thread routines and memory */
+	for (size_t i = 0; i < 2; ++i)
+    {
+        pthread_join(&threads[i], NULL);
+        free(hall_sensor_args[i]);
+        hall_sensor_args[i] = NULL;
+    } 
+
+    Motor_Stop(MOTORA);
+    Motor_Stop(MOTORB);
+
+	DEV_ModuleExit();
     gpioTerminate();
     pthread_exit(NULL);
+
     return 0;
 }
