@@ -51,19 +51,19 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-	if (initLS7336RChip(SPI0_CE0) || initLS7336RChip(SPI0_CE1))
+    if (initLS7336RChip(SPI0_CE0) || initLS7336RChip(SPI0_CE1))
     {
-	    printf("Error initializing the LS7336R chip.\n");
+        printf("Error initializing the LS7336R chip.\n");
         DEV_ModuleExit();
         gpioTerminate();
         exit(1);
-	}
+    }
 
-	Motor_Init();
+    Motor_Init();
 
     signal(SIGINT, handle_interrupt);
 
-	int speedA = 100;
+    int speedA = 100;
     int speedB = 100;
 
     uint8_t line_sensor_pins[] = {
@@ -112,29 +112,29 @@ int main(int argc, char* argv[])
 
     /* Directions must be alternated because the motors are mounted in 
      * opposite orientations. Both motors will turn forward relative to the car. */
-	Motor_Run(MOTORA, FORWARD, speedB);
+    Motor_Run(MOTORA, FORWARD, speedB);
     Motor_Run(MOTORB, BACKWARD, speedA);
 
     /* Pins for the motor speed counter */
-	uint8_t counter_pins[] = {
-		(uint8_t)SPI0_CE0,
-		(uint8_t)SPI0_CE1	
-	};
-	
-	double hall_sensor_vals[2] = { 0 };	
-	CounterArgs* hall_sensor_args[2];
-	pthread_t hall_sensor_threads[2];
-	
+    uint8_t counter_pins[] = {
+        (uint8_t)SPI0_CE0,
+        (uint8_t)SPI0_CE1    
+    };
+    
+    double hall_sensor_vals[2] = { 0 };    
+    CounterArgs* hall_sensor_args[2];
+    pthread_t hall_sensor_threads[2];
+    
     /* Create thread routines for the motors */
-	for (size_t i = 0; i < 2; i++){
-		CounterArgs* args = malloc(sizeof(CounterArgs));
-		args->speed_val = &hall_sensor_vals[i];
-		args->chip_enable = counter_pins[i];
-		args->p_terminate = &terminate;
-		
-		hall_sensor_args[i] = args;
-		pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)args);
-	}
+    for (size_t i = 0; i < 2; i++){
+        CounterArgs* args = malloc(sizeof(CounterArgs));
+        args->speed_val = &hall_sensor_vals[i];
+        args->chip_enable = counter_pins[i];
+        args->p_terminate = &terminate;
+        
+        hall_sensor_args[i] = args;
+        pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)args);
+    }
 
     while (!terminate)
     {
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
     }
 
     /* Clean up the motor thread routines and memory */
-	for (size_t i = 0; i < 2; ++i)
+    for (size_t i = 0; i < 2; ++i)
     {
         pthread_join(&hall_sensor_threads[i], NULL);
         free(hall_sensor_args[i]);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
 
-	DEV_ModuleExit();
+    DEV_ModuleExit();
     gpioTerminate();
     pthread_exit(NULL);
 
