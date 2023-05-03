@@ -32,7 +32,7 @@ static volatile bool terminate = false;
 
 void handle_interrupt(int signal)
 {
-    printf("\n\nInterrupt signal received. Terminating.\n");
+    //printf("\n\nInterrupt signal received. Terminating.\n");
     terminate = true;
 }
 
@@ -101,40 +101,41 @@ int main(int argc, char* argv[])
     CounterArgs* hall_sensor_args[NUM_MOTORS];
     pthread_t hall_sensor_threads[NUM_MOTORS];
 
+    int rc;
     /* Create thread routines for the line sensors */
-    for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
+    for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
     {
-        SensorArgs* args = malloc(sizeof(SensorArgs));
-        args->p_sensor_val = &line_sensor_vals[i];
-        args->gpio_pin = line_sensor_pins[i];
-        args->p_terminate = &terminate;
+        line_sensor_args[i] = malloc(sizeof(SensorArgs));
+        line_sensor_args[i]->p_sensor_val = &line_sensor_vals[i];
+        line_sensor_args[i]->gpio_pin = line_sensor_pins[i];
+        line_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
-        line_sensor_args[i] = args;
-        pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)args);
+        rc = pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
+	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Create thread routines for the obstacle sensors */
     for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
     {
-        SensorArgs* args = malloc(sizeof(SensorArgs));
-        args->p_sensor_val = &obst_sensor_vals[i];
-        args->gpio_pin = obst_sensor_pins[i];
-        args->p_terminate = &terminate;
+        obst_sensor_args[i] = malloc(sizeof(SensorArgs));
+        obst_sensor_args[i]->p_sensor_val = &obst_sensor_vals[i];
+        obst_sensor_args[i]->gpio_pin = obst_sensor_pins[i];
+        obst_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
-        obst_sensor_args[i] = args;
-        pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)args);
+        rc = pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)obst_sensor_args[i]);
+	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Create thread routines for the motors */
     for (size_t i = 0; i < NUM_MOTORS; i++)
     {
-        CounterArgs* args = malloc(sizeof(CounterArgs));
-        args->speed_val = &hall_sensor_vals[i];
-        args->chip_enable = counter_pins[i];
-        args->p_terminate = &terminate;
+        hall_sensor_args[i] = malloc(sizeof(CounterArgs));
+        hall_sensor_args[i]->speed_val = &hall_sensor_vals[i];
+        hall_sensor_args[i]->chip_enable = counter_pins[i];
+        hall_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
-        hall_sensor_args[i] = args;
-        pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)args);
+        rc = pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
+	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Directions must be alternated because the motors are mounted
@@ -145,75 +146,78 @@ int main(int argc, char* argv[])
     
     while (!terminate)
     {
-        printf("%u, %u, %u\n\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        //printf("%u, %u, %u\n\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
         {
-            printf("All three sensors are active\n");
+            //printf("All three sensors are active\n");
         }
         /* (1, 1, 0) LEFT and CENTER */
         else if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW)
         {
-            printf("Left and Center\n");
+            //printf("Left and Center\n");
         }
         /* (0, 1, 1) CENTER and RIGHT */
         else if (line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
         {
-            printf("Center and Right\n");
+            //printf("Center and Right\n");
         }
         /* (1, 0, 1) LEFT and RIGHT */
         else if (line_sensor_vals[0] == LOW && line_sensor_vals[2] == LOW)
         {
-            printf("Left and Right\n");
+            //printf("Left and Right\n");
         }
         /* (1, 0, 0) LEFT only */
         else if (line_sensor_vals[0] == LOW)
         {
-            printf("Left only\n");
+            //printf("Left only\n");
         }
         /* (0, 1, 0) CENTER only */
         else if (line_sensor_vals[1] == LOW)
         {
-            printf("Center only\n");
+            //printf("Center only\n");
         }
         /* (0, 0, 1) RIGHT only */
         else if (line_sensor_vals[2] == LOW)
         {
-            printf("Right only\n");
+            //printf("Right only\n");
         }
         /* (0, 0, 0) no sensors active */
         else 
         {
-            printf("No sensors are active\n");
+            //printf("No sensors are active\n");
         }
         usleep(100);
     }
-
+    printf("we are making it here\n");
     /* Clean up the line sensor thread routines and memory */
-    for (size_t i = 0; i < NUM_LINE_SENSORS; ++i)
+    for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
     {
-        pthread_join(&line_sensor_threads[i], NULL);
+        rc = pthread_join(line_sensor_threads[i], NULL);
+	printf("Ended line sensor thread with rc = %d\n", rc);
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
     }
-
+    printf("this is the check\n");
     /* Clean up the obstacle sensor thread routines and memory */
-    for (size_t i = 0; i < NUM_OBST_SENSORS; ++i) 
+    for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
     {
-        pthread_join(&obst_sensor_threads[i], NULL);
-        free(obst_sensor_args[i]);
+        rc = pthread_join(obst_sensor_threads[i], NULL);
+	printf("Ended obst sensor thread with rc = %d\n", rc);
+        //free(obst_sensor_args[i]);
         obst_sensor_args[i] = NULL;
     }
-
+    printf("we are making it here1\n");
     /* Clean up the motor thread routines and memory */
-    for (size_t i = 0; i < 2; ++i)
+    for (size_t i = 0; i < 2; i++)
     {
-        pthread_join(&hall_sensor_threads[i], NULL);
+        rc = pthread_join(hall_sensor_threads[i], NULL);
+	printf("Ended hall sensor thread with rc = %d\n", rc);
         free(hall_sensor_args[i]);
         hall_sensor_args[i] = NULL;
     } 
-
+    printf("we are making it here2\n");
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
 
