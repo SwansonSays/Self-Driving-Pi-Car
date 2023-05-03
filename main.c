@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
     
     while (!terminate)
     {
-        //printf("%u, %u, %u\n\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
@@ -190,34 +190,27 @@ int main(int argc, char* argv[])
         }
         usleep(100);
     }
-    printf("we are making it here\n");
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
     {
         rc = pthread_join(line_sensor_threads[i], NULL);
-	printf("Ended line sensor thread with rc = %d\n", rc);
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
     }
-    printf("this is the check\n");
     /* Clean up the obstacle sensor thread routines and memory */
     for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
     {
         rc = pthread_join(obst_sensor_threads[i], NULL);
-	printf("Ended obst sensor thread with rc = %d\n", rc);
-        //free(obst_sensor_args[i]);
+        free(obst_sensor_args[i]);
         obst_sensor_args[i] = NULL;
     }
-    printf("we are making it here1\n");
     /* Clean up the motor thread routines and memory */
     for (size_t i = 0; i < 2; i++)
     {
         rc = pthread_join(hall_sensor_threads[i], NULL);
-	printf("Ended hall sensor thread with rc = %d\n", rc);
         free(hall_sensor_args[i]);
         hall_sensor_args[i] = NULL;
     } 
-    printf("we are making it here2\n");
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
 
