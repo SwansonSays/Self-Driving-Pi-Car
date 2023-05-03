@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     
     uint8_t obst_sensor_vals[NUM_OBST_SENSORS] = { 0 };
     SensorArgs* obst_sensor_args[NUM_OBST_SENSORS];
-    pthread_t obst_sensor_threads[NUM_LINE_SENSORS];
+    pthread_t obst_sensor_threads[NUM_OBST_SENSORS];
 
     double hall_sensor_vals[NUM_MOTORS] = { 0 };    
     CounterArgs* hall_sensor_args[NUM_MOTORS];
