@@ -111,7 +111,6 @@ int main(int argc, char* argv[])
         line_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
         rc = pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
-	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Create thread routines for the obstacle sensors */
@@ -123,7 +122,6 @@ int main(int argc, char* argv[])
         obst_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
         rc = pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)obst_sensor_args[i]);
-	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Create thread routines for the motors */
@@ -135,7 +133,6 @@ int main(int argc, char* argv[])
         hall_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
         rc = pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
-	printf("Thread created with rc = %d\n", rc);
     }
 
     /* Directions must be alternated because the motors are mounted
