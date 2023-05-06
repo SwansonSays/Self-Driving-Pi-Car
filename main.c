@@ -25,8 +25,8 @@
 #define NUM_OBST_SENSORS    5
 #define NUM_MOTORS          2
 
-#define MOTOR_LEFT  MOTORA
-#define MOTOR_RIGHT MOTORB
+#define MOTOR_LEFT  MOTORB
+#define MOTOR_RIGHT MOTORA
 
 
 static volatile bool terminate = false;
@@ -140,52 +140,51 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    Motor_Run(MOTOR_LEFT, BACKWARD, speed_left);
-    Motor_Run(MOTOR_RIGHT, FORWARD, speed_right);
+    Motor_Run(MOTOR_LEFT, FORWARD, speed_left);
+    Motor_Run(MOTOR_RIGHT, BACKWARD, speed_right);
     
     while (!terminate)
     {
         printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
-        if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
+        if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            //printf("All three sensors are active\n");
+            printf("All three sensors are active\n");
         }
         /* (1, 1, 0) LEFT and CENTER */
-        else if (line_sensor_vals[0] == LOW && line_sensor_vals[1] == LOW)
+        else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
         {
-            //printf("Left and Center\n");
         }
         /* (0, 1, 1) CENTER and RIGHT */
-        else if (line_sensor_vals[1] == LOW && line_sensor_vals[2] == LOW)
+        else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            //printf("Center and Right\n");
         }
         /* (1, 0, 1) LEFT and RIGHT */
-        else if (line_sensor_vals[0] == LOW && line_sensor_vals[2] == LOW)
+        else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH)
         {
             //printf("Left and Right\n");
         }
         /* (1, 0, 0) LEFT only */
-        else if (line_sensor_vals[0] == LOW)
+        else if (line_sensor_vals[0] == HIGH)
         {
-            //printf("Left only\n");
         }
         /* (0, 1, 0) CENTER only */
-        else if (line_sensor_vals[1] == LOW)
+        else if (line_sensor_vals[1] == HIGH)
         {
-            //printf("Center only\n");
+            /* Motor speed should be equal. Set both to 100% */
         }
         /* (0, 0, 1) RIGHT only */
-        else if (line_sensor_vals[2] == LOW)
+        else if (line_sensor_vals[2] == HIGH)
         {
-            //printf("Right only\n");
         }
         /* (0, 0, 0) no sensors active */
         else 
         {
-            //printf("No sensors are active\n");
+            printf("No sensors are active\n");
+            Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 25);
+            Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 25);
+            speed_left = speed_right = 0;
         }
         usleep(100);
     }
