@@ -155,10 +155,14 @@ int main(int argc, char* argv[])
         /* (1, 1, 0) LEFT and CENTER */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
         {
+            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
+            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
         }
         /* (0, 1, 1) CENTER and RIGHT */
         else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
+            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
+            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
         }
         /* (1, 0, 1) LEFT and RIGHT */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH)
@@ -168,20 +172,26 @@ int main(int argc, char* argv[])
         /* (1, 0, 0) LEFT only */
         else if (line_sensor_vals[0] == HIGH)
         {
+            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
+            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
         }
         /* (0, 1, 0) CENTER only */
         else if (line_sensor_vals[1] == HIGH)
         {
             /* Motor speed should be equal. Set both to 100% */
+            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, 100, 5);
+            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, 100, 5);
         }
         /* (0, 0, 1) RIGHT only */
         else if (line_sensor_vals[2] == HIGH)
         {
+            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
+            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
         }
         /* (0, 0, 0) no sensors active */
         else 
         {
-            //printf("No sensors are active\n");
+            /* Stop if no sensors are active */
             speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 5);
             speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 5);
         }
