@@ -206,18 +206,15 @@ int main(int argc, char* argv[])
         /* (0, 0, 0) no sensors active */
         else 
         {
-            /* Stop if no sensors are active */
-            //speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 5);
-            //speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 5);
             if (last_dir == RIGHT) 
-            {
-                speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
-                speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
-            }
-            else if (last_dir == LEFT)
             {
                 speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
                 speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
+            }
+            else if (last_dir == LEFT)
+            {
+                speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
+                speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
             }
         }
         usleep(100);
