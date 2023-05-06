@@ -56,38 +56,45 @@ void Motor_Change_Direc(DIR dir){
 }
 
 
-//accelerate from the current speed to accel. rate is in seconds and increments speed by 5/sec
-void Motor_Increase_Speed(UBYTE motor,UWORD current, UWORD accel, int rate){
+//accelerate from the current speed to desired. rate is in seconds and increments speed by 5/sec
+void Motor_Increase_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
+{
+    if (desired > 100) { desired = 100; }
 
-	for(int i = current+1;i<=accel;i++){
-		//DEBUG("Motor Speed = %d\r\n", i);
-		if(current == MOTORA){
-			PCA9685_SetPwmDutyCycle(PCA_CHANNEL_0, i);
-		}else if(motor == MOTORB){
-			PCA9685_SetPwmDutyCycle(PCA_CHANNEL_1, i);
-		}
-		if((i!=0)&&i%rate==0){
-			sleep(1);
-		}
-	}
+    while (current > desired)
+    {
+        current += rate;
+        if (current > 100) { current = 100; }
+
+        if(motor == MOTORA) {
+            printf("Increasing MOTORA\n");
+            PCA9685_SetPwmDutyCycle(PWMA, current);
+        } else if(motor == MOTORB) {
+            printf("Increasing MOTORB\n");
+            PCA9685_SetPwmDutyCycle(PWMB, current);
+        }
+    }
 
 }
 
 
-void Motor_Decrease_Speed(UBYTE motor,UWORD current, UWORD slow, int rate){
+void Motor_Decrease_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
+{
+    if (desired < 0) { desired = 0; }
 
-        for(int i = current-1;i>=slow;i--){
-		//DEBUG("Motor Speed = %d\r\n", i);
-                if(current == MOTORA){
-                        PCA9685_SetPwmDutyCycle(PCA_CHANNEL_0, i);
-                }else if(motor == MOTORB){
-                        PCA9685_SetPwmDutyCycle(PCA_CHANNEL_1, i);
-                }
-		if((i!=0)&&(i%rate==0)){
-                	sleep(1);
-		}
+    while (current > desired)
+    {
+        current -= rate;
+        if (current < 0) { current = 0; }
+
+        if(motor == MOTORA) {
+            printf("Decreasing MOTORA\n");
+            PCA9685_SetPwmDutyCycle(PWMA, current);
+        } else if(motor == MOTORB) {
+            printf("Decreasing MOTORB\n");
+            PCA9685_SetPwmDutyCycle(PWMB, current);
         }
-
+    }
 }
 
 
