@@ -31,6 +31,13 @@
 
 static volatile bool terminate = false;
 
+typedef enum 
+{
+    STRAIGHT = 0,
+    LEFT,
+    RIGHT
+} DIRECTION;
+
 
 void handle_interrupt(int signal)
 {
@@ -63,6 +70,8 @@ int main(int argc, char* argv[])
     }
 
     Motor_Init();
+
+    DIRECTION last_dir = STRAIGHT;
 
     signal(SIGINT, handle_interrupt);
 
@@ -145,24 +154,27 @@ int main(int argc, char* argv[])
     
     while (!terminate)
     {
-        //printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            //printf("All three sensors are active\n");
+            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, 100, 5);
+            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, 100, 5);
         }
         /* (1, 1, 0) LEFT and CENTER */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
         {
             speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
             speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
+            last_dir = LEFT;
         }
         /* (0, 1, 1) CENTER and RIGHT */
         else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
             speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
             speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
+            last_dir = RIGHT;
         }
         /* (1, 0, 1) LEFT and RIGHT */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH)
@@ -174,6 +186,7 @@ int main(int argc, char* argv[])
         {
             speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
             speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
+            last_dir = LEFT;
         }
         /* (0, 1, 0) CENTER only */
         else if (line_sensor_vals[1] == HIGH)
@@ -181,19 +194,31 @@ int main(int argc, char* argv[])
             /* Motor speed should be equal. Set both to 100% */
             speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, 100, 5);
             speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, 100, 5);
+            last_dir = STRAIGHT;
         }
         /* (0, 0, 1) RIGHT only */
         else if (line_sensor_vals[2] == HIGH)
         {
             speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
             speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
+            last_dir = RIGHT;
         }
         /* (0, 0, 0) no sensors active */
         else 
         {
             /* Stop if no sensors are active */
-            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 5);
-            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 5);
+            //speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 5);
+            //speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 5);
+            if (last_dir == RIGHT) 
+            {
+                speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
+                speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
+            }
+            else if (last_dir == LEFT)
+            {
+                speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
+                speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
+            }
         }
         usleep(100);
     }
