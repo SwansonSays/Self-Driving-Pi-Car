@@ -21,10 +21,12 @@
 #define PIN_OBSTSENS_SIDEL  0
 #define PIN_OBSTSENS_SIDER  0
 
-
 #define NUM_LINE_SENSORS    3
 #define NUM_OBST_SENSORS    5
 #define NUM_MOTORS          2
+
+#define MOTOR_LEFT  MOTORA
+#define MOTOR_RIGHT MOTORB
 
 
 static volatile bool terminate = false;
@@ -64,8 +66,8 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, handle_interrupt);
 
-    int speedA = 100;
-    int speedB = 100;
+    int speed_left = 100;
+    int speed_right = 100;
 
     /* GPIO pins for the line sensors */
     uint8_t line_sensor_pins[] = {
@@ -138,8 +140,8 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    Motor_Run(MOTORA, FORWARD, speedB);
-    Motor_Run(MOTORB, BACKWARD, speedA);
+    Motor_Run(MOTOR_LEFT, BACKWARD, speed_left);
+    Motor_Run(MOTOR_RIGHT, FORWARD, speed_right);
     
     while (!terminate)
     {
