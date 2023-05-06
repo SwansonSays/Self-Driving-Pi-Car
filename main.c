@@ -145,12 +145,12 @@ int main(int argc, char* argv[])
     
     while (!terminate)
     {
-        printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        //printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            printf("All three sensors are active\n");
+            //printf("All three sensors are active\n");
         }
         /* (1, 1, 0) LEFT and CENTER */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
@@ -181,10 +181,9 @@ int main(int argc, char* argv[])
         /* (0, 0, 0) no sensors active */
         else 
         {
-            printf("No sensors are active\n");
-            Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 25);
-            Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 25);
-            speed_left = speed_right = 0;
+            //printf("No sensors are active\n");
+            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, 0, 5);
+            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, 0, 5);
         }
         usleep(100);
     }
