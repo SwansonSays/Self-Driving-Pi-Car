@@ -56,45 +56,73 @@ void Motor_Change_Direc(DIR dir){
 }
 
 
-//accelerate from the current speed to desired. rate is in seconds and increments speed by 5/sec
-void Motor_Increase_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
+/**
+ * Accelerate from the current power level to desired.
+ * Duty cycle is updated in increments of `rate`.
+ * Maximum desired power level is 100.
+ * 
+ * Returns the updated power level of the given motor.
+ */
+UWORD Motor_Increase_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
 {
     if (desired > 100) { desired = 100; }
 
-    while (current > desired)
+    while (current < desired)
     {
         current += rate;
-        if (current > 100) { current = 100; }
 
-        if(motor == MOTORA) {
-            printf("Increasing MOTORA\n");
+        /* Maximum allowed duty cycle is 100% */
+        if (current > 100) { 
+            current = 100; 
+        }
+        /* Avoid overshooting the target value */
+        if (current > desired) {
+            current = desired;
+        }
+        /* Update the duty cycle for the given motor */
+        if (motor == MOTORA) {
             PCA9685_SetPwmDutyCycle(PWMA, current);
-        } else if(motor == MOTORB) {
-            printf("Increasing MOTORB\n");
+        } 
+        else if (motor == MOTORB) {
             PCA9685_SetPwmDutyCycle(PWMB, current);
         }
     }
-
+    return current;
 }
 
 
-void Motor_Decrease_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
+/**
+ * Decelerate from the current power level to desired.
+ * Duty cycle is updated in increments of `rate`.
+ * Minimum desired power level is 0.
+ * 
+ * Returns the updated power level of the given motor.
+ */
+UWORD Motor_Decrease_Speed(UBYTE motor, UWORD current, UWORD desired, int rate)
 {
     if (desired < 0) { desired = 0; }
 
     while (current > desired)
     {
         current -= rate;
-        if (current < 0) { current = 0; }
 
-        if(motor == MOTORA) {
-            printf("Decreasing MOTORA\n");
+        /* Prevent setting a negative duty cycle */
+        if (current < 0) { 
+            current = 0; 
+        }
+        /* Prevent overshooting the desired value */
+        if (current < desired) { 
+            current = desired; 
+        }
+        /* Update the duty cycle for the given motor */
+        if (motor == MOTORA) {
             PCA9685_SetPwmDutyCycle(PWMA, current);
-        } else if(motor == MOTORB) {
-            printf("Decreasing MOTORB\n");
+        } 
+        else if (motor == MOTORB) {
             PCA9685_SetPwmDutyCycle(PWMB, current);
         }
     }
+    return current;
 }
 
 

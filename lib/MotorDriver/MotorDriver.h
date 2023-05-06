@@ -37,8 +37,12 @@ typedef enum {
 
 void Motor_Init(void);
 void Motor_Run(UBYTE motor, DIR dir, UWORD speed);
+
 void Motor_Stop(UBYTE motor);
+
 void Motor_Change_Direc(DIR dir);
-void Motor_Increase_Speed(UBYTE motor,UWORD current,UWORD accel,int rate);
-void Motor_Decrease_Speed(UBYTE motor,UWORD current,UWORD slow,int rate);
+
+UWORD Motor_Increase_Speed(UBYTE motor,UWORD current,UWORD accel,int rate);
+UWORD Motor_Decrease_Speed(UBYTE motor,UWORD current,UWORD slow,int rate);
+
 #endif
