@@ -11,9 +11,9 @@
 #include "sensor.h"
 
 
-#define PIN_LINESENSOR_L    13
+#define PIN_LINESENSOR_L    5
 #define PIN_LINESENSOR_C    6
-#define PIN_LINESENSOR_R    5
+#define PIN_LINESENSOR_R    13
 
 #define PIN_OBSTSENS_FRONTL 0
 #define PIN_OBSTSENS_FRONTC 0
@@ -38,12 +38,33 @@ typedef enum
     RIGHT
 } DIRECTION;
 
+typedef struct
+{
+    DIRECTION last_dir;
+    UBYTE speed_left;
+    UBYTE speed_right;
+    uint8_t update;
+} ProgramState;
 
 void handle_interrupt(int signal)
 {
-    //printf("\n\nInterrupt signal received. Terminating.\n");
     terminate = true;
 }
+
+void turn_left(ProgramState* state)
+{
+    state->speed_left = Motor_Decrease_Speed(MOTOR_LEFT, state->speed_left, state->speed_left - 5, 1);
+    state->speed_right = Motor_Increase_Speed(MOTOR_RIGHT, state->speed_right, state->speed_right + 5, 1);
+    state->last_dir = LEFT;
+}
+
+void turn_right(ProgramState* state)
+{
+    state->speed_left = Motor_Increase_Speed(MOTOR_LEFT, state->speed_left, state->speed_left + 5, 1);
+    state->speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, state->speed_right, state->speed_right - 5, 1);
+    state->last_dir = RIGHT;
+}
+
 
 
 int main(int argc, char* argv[])
@@ -71,12 +92,12 @@ int main(int argc, char* argv[])
 
     Motor_Init();
 
-    DIRECTION last_dir = STRAIGHT;
+    ProgramState state;
+    state.last_dir = STRAIGHT;
+    state.speed_left = 100;
+    state.speed_right = 100;
 
     signal(SIGINT, handle_interrupt);
-
-    int speed_left = 100;
-    int speed_right = 100;
 
     /* GPIO pins for the line sensors */
     uint8_t line_sensor_pins[] = {
@@ -149,32 +170,27 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    Motor_Run(MOTOR_LEFT, FORWARD, speed_left);
-    Motor_Run(MOTOR_RIGHT, BACKWARD, speed_right);
+    Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
+    Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     
+
     while (!terminate)
     {
-        printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        //printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, 100, 5);
-            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, 100, 5);
         }
         /* (1, 1, 0) LEFT and CENTER */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
         {
-            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
-            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
-            last_dir = LEFT;
+            turn_left(&state);
         }
         /* (0, 1, 1) CENTER and RIGHT */
         else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
         {
-            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
-            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
-            last_dir = RIGHT;
+            turn_right(&state);
         }
         /* (1, 0, 1) LEFT and RIGHT */
         else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH)
@@ -184,40 +200,34 @@ int main(int argc, char* argv[])
         /* (1, 0, 0) LEFT only */
         else if (line_sensor_vals[0] == HIGH)
         {
-            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
-            speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
-            last_dir = LEFT;
+            turn_left(&state);
         }
         /* (0, 1, 0) CENTER only */
         else if (line_sensor_vals[1] == HIGH)
         {
             /* Motor speed should be equal. Set both to 100% */
-            speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, 100, 5);
-            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, 100, 5);
-            last_dir = STRAIGHT;
+            state.speed_left = Motor_Increase_Speed(MOTOR_LEFT, state.speed_left, 100, 5);
+            state.speed_right = Motor_Increase_Speed(MOTOR_RIGHT, state.speed_right, 100, 5);
+            state.last_dir = STRAIGHT;
         }
         /* (0, 0, 1) RIGHT only */
         else if (line_sensor_vals[2] == HIGH)
         {
-            speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
-            speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
-            last_dir = RIGHT;
+            turn_right(&state);
         }
         /* (0, 0, 0) no sensors active */
         else 
         {
-            if (last_dir == RIGHT) 
+            if (state.last_dir == RIGHT) 
             {
-                speed_left = Motor_Increase_Speed(MOTOR_LEFT, speed_left, speed_left + 5, 1);
-                speed_right = Motor_Decrease_Speed(MOTOR_RIGHT, speed_right, speed_right - 5, 1);
+                turn_right(&state);
             }
-            else if (last_dir == LEFT)
+            else if (state.last_dir == LEFT)
             {
-                speed_left = Motor_Decrease_Speed(MOTOR_LEFT, speed_left, speed_left - 5, 1);
-                speed_right = Motor_Increase_Speed(MOTOR_RIGHT, speed_right, speed_right + 5, 1);
+                turn_left(&state);
             }
         }
-        usleep(100);
+        usleep(1000);
     }
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
