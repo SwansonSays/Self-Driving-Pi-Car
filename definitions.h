@@ -1,9 +1,10 @@
 #ifndef DEFS_H_
 #define DEFS_H_
+
+
 #define PULSES_PER_REV  540.0
 #define PI                      3.141592654
 #define WHEEL_RADIUS    6.5
-
 
 #define GPIO00  0               //Physical Pin 27 (ID_SD, I2C ID - Reserved)
 #define GPIO01  1               //Physical Pin 28 (ID_SC, I2C ID - Reserved)
@@ -40,4 +41,6 @@
 
 #define SPI0_CE0        GPIO08          //Physical Pin 24
 #define SPI0_CE1        GPIO07          //Physical Pin 26
+
+
 #endif

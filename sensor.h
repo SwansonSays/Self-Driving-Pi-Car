@@ -7,8 +7,9 @@
 #include <pthread.h>
 #include "lib/7366r/7366rDriver.h"
 
-#define HIGH 1
-#define LOW  0
+
+#define HIGH    1
+#define LOW     0
 
 
 typedef struct {
