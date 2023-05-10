@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
     while (!terminate)
     {
-        printf("%u, %u, %u\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2]);
+        printf("%u, %u, %u (%d)\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], state.confidence);
 
         /* (1, 1, 1) All three sensors are on */
         if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
