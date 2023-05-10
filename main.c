@@ -15,12 +15,6 @@
 #define PIN_LINESENSOR_C    6
 #define PIN_LINESENSOR_R    13
 
-#define PIN_OBSTSENS_FRONTL 0
-#define PIN_OBSTSENS_FRONTC 0
-#define PIN_OBSTSENS_FRONTR 0
-#define PIN_OBSTSENS_SIDEL  0
-#define PIN_OBSTSENS_SIDER  0
-
 #define NUM_LINE_SENSORS    3
 #define NUM_OBST_SENSORS    5
 #define NUM_MOTORS          2
@@ -155,15 +149,6 @@ int main(int argc, char* argv[])
         (uint8_t)PIN_LINESENSOR_R
     };
 
-    /* GPIO pins for the obstacle sensors */
-    uint8_t obst_sensor_pins[] = {
-        (uint8_t)PIN_OBSTSENS_FRONTL,
-        (uint8_t)PIN_OBSTSENS_FRONTC,
-        (uint8_t)PIN_OBSTSENS_FRONTR,
-        (uint8_t)PIN_OBSTSENS_SIDEL,
-        (uint8_t)PIN_OBSTSENS_SIDER
-    };
-
     /* GPIO pins for the motor speed counter */
     uint8_t counter_pins[] = {
         (uint8_t)SPI0_CE0,
@@ -174,10 +159,6 @@ int main(int argc, char* argv[])
     SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
     pthread_t line_sensor_threads[NUM_LINE_SENSORS];
     
-    volatile uint8_t obst_sensor_vals[NUM_OBST_SENSORS] = { 0 };
-    SensorArgs* obst_sensor_args[NUM_OBST_SENSORS];
-    pthread_t obst_sensor_threads[NUM_OBST_SENSORS];
-
     volatile double hall_sensor_vals[NUM_MOTORS] = { 0 };    
     CounterArgs* hall_sensor_args[NUM_MOTORS];
     pthread_t hall_sensor_threads[NUM_MOTORS];
@@ -192,17 +173,6 @@ int main(int argc, char* argv[])
         line_sensor_args[i]->p_terminate = &terminate;
         /* Keep track of the pointer so it can be freed later */
         rc = pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
-    }
-
-    /* Create thread routines for the obstacle sensors */
-    for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
-    {
-        obst_sensor_args[i] = malloc(sizeof(SensorArgs));
-        obst_sensor_args[i]->p_sensor_val = &obst_sensor_vals[i];
-        obst_sensor_args[i]->gpio_pin = obst_sensor_pins[i];
-        obst_sensor_args[i]->p_terminate = &terminate;
-        /* Keep track of the pointer so it can be freed later */
-        rc = pthread_create(&obst_sensor_threads[i], NULL, read_sensor, (void*)obst_sensor_args[i]);
     }
 
     /* Create thread routines for the motors */
@@ -283,13 +253,6 @@ int main(int argc, char* argv[])
         rc = pthread_join(line_sensor_threads[i], NULL);
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
-    }
-    /* Clean up the obstacle sensor thread routines and memory */
-    for (size_t i = 0; i < NUM_OBST_SENSORS; i++) 
-    {
-        rc = pthread_join(obst_sensor_threads[i], NULL);
-        free(obst_sensor_args[i]);
-        obst_sensor_args[i] = NULL;
     }
     /* Clean up the motor thread routines and memory */
     for (size_t i = 0; i < 2; i++)
