@@ -27,6 +27,14 @@ void handle_interrupt(int signal)
     terminate = true;
 }
 
+void init_program_state(ProgramState* state)
+{
+    state->last_dir = STRAIGHT;
+    state->last_req = STRAIGHT;
+    state->speed_left = 100;
+    state->speed_right = 100;
+    state->confidence = 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -54,11 +62,7 @@ int main(int argc, char* argv[])
     Motor_Init();
 
     ProgramState state;
-    state.last_dir = STRAIGHT;
-    state.last_req = STRAIGHT;
-    state.speed_left = 100;
-    state.speed_right = 100;
-    state.confidence = 0;
+    init_program_state(&state);
 
     signal(SIGINT, handle_interrupt);
 
