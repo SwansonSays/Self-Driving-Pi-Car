@@ -2,6 +2,15 @@
 #include "sensor.h"
 
 
+/**
+ * Turn left by increasing the speed of the right motor, and 
+ * decreasing the speed of the left. Turning will not be performed
+ * unless the sensor reading confidence threshold has been met. 
+ *
+ * The confidence threshold is incremented with each successive
+ * request to turn in the same direction, and is reset to zero
+ * when the requested direction changes.
+ */
 void turn_left(ProgramState* state)
 {
     //printf("Turning LEFT\n");
@@ -21,6 +30,15 @@ void turn_left(ProgramState* state)
     state->last_req = LEFT;
 }
 
+/**
+ * Turn right by decreasing the speed of the right motor, and 
+ * increasing the speed of the left. Turning will not be performed
+ * unless the sensor reading confidence threshold has been met. 
+ *
+ * The confidence threshold is incremented with each successive
+ * request to turn in the same direction, and is reset to zero
+ * when the requested direction changes.
+ */
 void turn_right(ProgramState* state)
 {
     //printf("Turning RIGHT\n");
@@ -40,6 +58,17 @@ void turn_right(ProgramState* state)
     state->last_req = RIGHT;
 }
 
+
+/** 
+ * Straighten out the car by setting both wheels to the same speed (100%).
+
+ * Adjustment will not be performed unless the sensor reading confidence 
+ * threshold has been met. 
+ *
+ * The confidence threshold is incremented with each successive
+ * request to go straight, and is reset to zero when the requested 
+ * direction changes.
+ */
 void go_straight(ProgramState* state)
 {
     //printf("Turning RIGHT\n");
@@ -60,8 +89,21 @@ void go_straight(ProgramState* state)
 }
 
 
+/**
+ * Evaluate the line sensor values and take the appropriate action 
+ * to follow the line.
+ */
 void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 {
+    /* IMPORTANT: The sensor evaluations must be performed in exactly this order:
+     * from most specific (all three sensors), then pairs of sensors, then finally 
+     * cases where only one sensor is checked. 
+     *
+     * If the order is changed so that single sensors are checked first, it will 
+     * short circuit the evaluation and cases where more than one sensor are 
+     * active will get skipped over.
+     */
+
     /* (1, 1, 1) All three sensors are on */
     if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH) {
         /* Keep performing the current action */
@@ -91,8 +133,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
         turn_right(state);
     }
     /* (0, 0, 0) no sensors active */
-    else 
-    {
+    else  {
         /* Fall back on the last attempted direction */
         if (state->last_dir == RIGHT) {
             turn_right(state);
