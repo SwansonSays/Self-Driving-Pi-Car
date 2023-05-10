@@ -95,8 +95,10 @@ void go_straight(ProgramState* state)
  */
 void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 {
-    /* IMPORTANT: The sensor evaluations must be performed in exactly this order:
-     * from most specific (all three sensors), then pairs of sensors, then finally 
+    /* IMPORTANT: The sensor evaluations must be performed in exactly this order.
+     * (from most specific, to least). 
+     *
+     * First check all three sensors, then pairs of sensors, then finally 
      * cases where only one sensor is checked. 
      *
      * If the order is changed so that single sensors are checked first, it will 
