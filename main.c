@@ -107,6 +107,49 @@ void go_straight(ProgramState* state)
 }
 
 
+void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
+{
+    /* (1, 1, 1) All three sensors are on */
+    if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH) {
+        /* Keep performing the current action */
+    }
+    /* (1, 1, 0) LEFT and CENTER */
+    else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH) {
+        turn_left(state);
+    }
+    /* (0, 1, 1) CENTER and RIGHT */
+    else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH) {
+        turn_right(state);
+    }
+    /* (1, 0, 1) LEFT and RIGHT */
+    else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH) {
+        /* Keep performing the current action */
+    }
+    /* (1, 0, 0) LEFT only */
+    else if (line_sensor_vals[0] == HIGH) {
+        turn_left(state);
+    }
+    /* (0, 1, 0) CENTER only */
+    else if (line_sensor_vals[1] == HIGH) {
+        go_straight(state);
+    }
+    /* (0, 0, 1) RIGHT only */
+    else if (line_sensor_vals[2] == HIGH) {
+        turn_right(state);
+    }
+    /* (0, 0, 0) no sensors active */
+    else 
+    {
+        /* Fall back on the last attempted direction */
+        if (state->last_dir == RIGHT) {
+            turn_right(state);
+        }
+        else if (state->last_dir == LEFT) {
+            turn_left(state);
+        }
+    }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -196,55 +239,7 @@ int main(int argc, char* argv[])
     while (!terminate)
     {
         printf("%u, %u, %u (%d)\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], state.confidence);
-
-        /* (1, 1, 1) All three sensors are on */
-        if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
-        {
-        }
-        /* (1, 1, 0) LEFT and CENTER */
-        else if (line_sensor_vals[0] == HIGH && line_sensor_vals[1] == HIGH)
-        {
-            turn_left(&state);
-        }
-        /* (0, 1, 1) CENTER and RIGHT */
-        else if (line_sensor_vals[1] == HIGH && line_sensor_vals[2] == HIGH)
-        {
-            turn_right(&state);
-        }
-        /* (1, 0, 1) LEFT and RIGHT */
-        else if (line_sensor_vals[0] == HIGH && line_sensor_vals[2] == HIGH)
-        {
-            //printf("Left and Right\n");
-        }
-        /* (1, 0, 0) LEFT only */
-        else if (line_sensor_vals[0] == HIGH)
-        {
-            turn_left(&state);
-        }
-        /* (0, 1, 0) CENTER only */
-        else if (line_sensor_vals[1] == HIGH)
-        {
-            //printf("Going STRAIGHT\n");
-            /* Motor speed should be equal. Set both to 100% */
-            go_straight(&state);
-        }
-        /* (0, 0, 1) RIGHT only */
-        else if (line_sensor_vals[2] == HIGH)
-        {
-            turn_right(&state);
-        }
-        /* (0, 0, 0) no sensors active */
-        else 
-        {
-            if (state.last_dir == RIGHT) 
-            {
-                turn_right(&state);
-            }
-            else if (state.last_dir == LEFT)
-            {
-                turn_left(&state);
-            }
-        }
+        follow_line(line_sensor_vals, &state);
         usleep(1000);
     }
     /* Clean up the line sensor thread routines and memory */
