@@ -17,7 +17,6 @@
 #define PIN_LINESENSOR_R    13
 
 #define NUM_LINE_SENSORS    3
-#define NUM_OBST_SENSORS    5
 #define NUM_MOTORS          2
 
 
