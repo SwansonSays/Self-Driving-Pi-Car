@@ -12,11 +12,14 @@
 #include "movement.h"
 
 
-#define PIN_LINESENSOR_L    5
-#define PIN_LINESENSOR_C    6
-#define PIN_LINESENSOR_R    13
+#define PIN_LINESENSOR_FRONT_L    5
+#define PIN_LINESENSOR_FRONT_C    6
+#define PIN_LINESENSOR_FRONT_R 	  13
 
-#define NUM_LINE_SENSORS    3
+#define PIN_LINESENSOR_REAR_L     23
+#define PIN_LINESENSOR_REAR_R	  24
+
+#define NUM_LINE_SENSORS    5
 #define NUM_MOTORS          2
 
 
@@ -33,7 +36,8 @@ void init_program_state(ProgramState* state)
     state->last_req = STRAIGHT;
     state->speed_left = 100;
     state->speed_right = 100;
-    state->confidence = 0;
+    state->inner_confidence = 0;
+    state->outer_confidence = 0;
 }
 
 int main(int argc, char* argv[])
@@ -68,9 +72,11 @@ int main(int argc, char* argv[])
 
     /* GPIO pins for the line sensors */
     uint8_t line_sensor_pins[] = {
-        (uint8_t)PIN_LINESENSOR_L,
-        (uint8_t)PIN_LINESENSOR_C,
-        (uint8_t)PIN_LINESENSOR_R
+        (uint8_t)PIN_LINESENSOR_FRONT_L,
+        (uint8_t)PIN_LINESENSOR_FRONT_C,
+        (uint8_t)PIN_LINESENSOR_FRONT_R,
+        (uint8_t)PIN_LINESENSOR_REAR_L,
+        (uint8_t)PIN_LINESENSOR_REAR_R
     };
 
     /* GPIO pins for the motor speed counter */
@@ -119,7 +125,7 @@ int main(int argc, char* argv[])
 
     while (!terminate)
     {
-        printf("%u, %u, %u (%d)\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], state.confidence);
+        printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], line_sensor_vals[3], line_sensor_vals[4], state.inner_confidence, state.outer_confidence);
         follow_line(line_sensor_vals, &state);
         usleep(1000);
     }

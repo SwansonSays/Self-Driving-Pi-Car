@@ -11,6 +11,7 @@
 
 
 #define CONFIDENCE_THRESHOLD 8
+#define CONFIDENCE_MAX 100
 
 typedef enum 
 {
@@ -25,13 +26,13 @@ typedef struct
     DIRECTION last_req;
     UBYTE speed_left;
     UBYTE speed_right;
-    uint8_t update;
-    uint8_t confidence;
+    uint8_t inner_confidence;
+    uint8_t outer_confidence;
 } ProgramState;
 
-void turn_left(ProgramState* state);
-void turn_right(ProgramState* state);
-void go_straight(ProgramState* state);
+void turn_left(ProgramState* state, uint8_t* confidence);
+void turn_right(ProgramState* state, uint8_t* confidence);
+void go_straight(ProgramState* state, uint8_t* confidence);
 
 
 #endif  /* _MOVEMENT_H */
