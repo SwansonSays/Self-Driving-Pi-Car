@@ -2,8 +2,12 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <stdio.h>
-#include <unistd.h>  /* usleep() */
-#include <stdlib.h>  /* exit() */
+#include <unistd.h>     /* usleep() and close() */
+#include <stdlib.h>     /* exit() */
+#include <sys/mman.h>   /* shm_open() and mmap() */
+#include <sys/stat.h>   /* For mode constants */
+#include <fcntl.h>      /* For O_* constants */
+#include <string.h>     /* memcpy() */
 #include "MotorDriver.h"
 
 #include <pigpio.h>
@@ -40,6 +44,47 @@ void init_program_state(ProgramState* state)
     state->outer_confidence = 0;
 }
 
+struct Params
+{
+    /* Pointer to shared struct */
+    struct Lidar_data* shared;
+    /* Params to set the viewing angle */
+    float right_theta;
+    float left_theta;
+    float max_distance;
+    /* Values of the most recent valid sensor reading */
+    float theta;
+    float distance;
+};
+
+struct Lidar_data {
+    float theta;
+    float distance;
+    int quality;
+}Lidar_data;
+
+void read_lidar(void* args) {
+    struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
+
+    while (1) {
+        /* 
+        *   Copy lidar scan to temparay struct because lidar scans faster then we can 
+        *   proccess the data This avoids our data being overwritten while proccessing 
+        */
+        memcpy(temp_data, data, sizeof(struct Lidar_data));
+
+        /* If quality of the scan is good and the distance is greater then 0 but less then max */
+        if (temp_data->quality > 10 && temp_data->distance < args.max_distance && temp_data->distance > 0) {
+            /* If scan is inside our viewing range */
+            if (temp_data->theta > args.left_theta || temp_data->theta < args.right_theta) {
+                printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data->theta, temp_data->distance, temp_data->quality);
+                args.theta = temp_data->theta;
+                args.distance = temp_data->distance;
+            }
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     /* Initialize motor driver */
@@ -64,6 +109,21 @@ int main(int argc, char* argv[])
     }
 
     Motor_Init();
+
+    /* Initilize shared memory */
+    const char* name = "SHARED_MEMORY";
+    int shm_fd = shm_open(name, O_RDONLY, 0666);
+    struct Lidar_data* data = mmap(NULL, sizeof(struct Lidar_data), PROT_READ, MAP_SHARED, shm_fd, 0);
+
+    struct Params params;
+
+    params.shared = Lidar_data;
+    params.left_theta = 270.0f;
+    params.right_theta = 90.0f;
+    params.max_distance = 400.0f;
+    params.theta = 0.0f;
+    params.distance = 0.0f;
+
 
     ProgramState state;
     init_program_state(&state);
@@ -93,6 +153,8 @@ int main(int argc, char* argv[])
     CounterArgs* hall_sensor_args[NUM_MOTORS];
     pthread_t hall_sensor_threads[NUM_MOTORS];
 
+    pthread_t lidar_thread;
+
     int rc;
     /* Create thread routines for the line sensors */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
@@ -115,6 +177,9 @@ int main(int argc, char* argv[])
         /* Keep track of the pointer so it can be freed later */
         rc = pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
     }
+
+    /* cerate thread routines for the lidar */
+    pthread_create(&lidar_thread, NULL, read_lidar, (void*)&params);
 
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
@@ -146,6 +211,11 @@ int main(int argc, char* argv[])
         free(hall_sensor_args[i]);
         hall_sensor_args[i] = NULL;
     } 
+    /* Clean up the lidar thread routines and shared memory */
+    munmap(NULL, sizeof(*data));
+    shm_unlink(name);
+    close(shm_fd);
+
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
 
