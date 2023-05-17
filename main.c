@@ -121,11 +121,14 @@ int main(int argc, char* argv[])
      * to the car. */
     Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
     Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
-    
 
     while (!terminate)
     {
-        printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n", line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], line_sensor_vals[3], line_sensor_vals[4], state.inner_confidence, state.outer_confidence);
+        printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n", 
+            line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
+            line_sensor_vals[3], line_sensor_vals[4], 
+            state.inner_confidence, state.outer_confidence);
+
         follow_line(line_sensor_vals, &state);
         usleep(1000);
     }
