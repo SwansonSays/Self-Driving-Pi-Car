@@ -85,6 +85,8 @@ void read_lidar(void* args) {
             }
         }
     }
+    free(temp_data);
+    temp_data = NULL;
 }
 
 int main(int argc, char* argv[])
