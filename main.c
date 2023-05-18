@@ -55,6 +55,7 @@ struct Params
     /* Values of the most recent valid sensor reading */
     float theta;
     float distance;
+    bool* p_terminate;
 }Params;
 
 struct Lidar_data {
@@ -67,7 +68,7 @@ void read_lidar(void* args) {
     struct Params* data = (struct Params*)args;
     struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
 
-    while (1) {
+    while (!*(data->p_terminate)) {
         /* 
         *   Copy lidar scan to temparay struct because lidar scans faster then we can 
         *   proccess the data This avoids our data being overwritten while proccessing 
@@ -124,7 +125,7 @@ int main(int argc, char* argv[])
     params.max_distance = 400.0f;
     params.theta = 0.0f;
     params.distance = 0.0f;
-
+    params.p_terminate = &terminate;
 
     ProgramState state;
     init_program_state(&state);
