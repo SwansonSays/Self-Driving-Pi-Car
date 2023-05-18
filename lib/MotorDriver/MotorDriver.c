@@ -41,18 +41,32 @@ void Motor_Init(void)
  * Motor_Run(MOTORB, BACKWARD, 100);
  */
 
-void Motor_Change_Direc(DIR dir){
-    PCA9685_SetPwmDutyCycle(PCA_CHANNEL_0, 0);
+void Motor_Change_Direc(UBYTE motor, DIR dir){
+    //PCA9685_SetPwmDutyCycle(PCA_CHANNEL_0, 0);
+    //PCA9685_SetPwmDutyCycle(PCA_CHANNEL_0, 0);
     sleep(1);
-    if(dir == FORWARD) {
-        DEBUG("forward...\r\n");
-        PCA9685_SetLevel(PCA_CHANNEL_1, 0);
-        PCA9685_SetLevel(PCA_CHANNEL_2, 1);
-    } else {
-        DEBUG("backward...\r\n");
-        PCA9685_SetLevel(PCA_CHANNEL_1, 1);
-        PCA9685_SetLevel(PCA_CHANNEL_2, 0);
-    }
+    if( motor == MOTORA){
+        if(dir == FORWARD) {
+            DEBUG("forward...\r\n");
+            PCA9685_SetLevel(PCA_CHANNEL_1, 0);
+            //PCA9685_SetLevel(PCA_CHANNEL_2, 1);
+        } else {
+            DEBUG("backward...\r\n");
+            PCA9685_SetLevel(PCA_CHANNEL_1, 1);
+           // PCA9685_SetLevel(PCA_CHANNEL_2, 0);
+		}
+    }else if(motor == MOTORB){
+        if(dir == FORWARD) {
+            DEBUG("forward...\r\n");
+           // PCA9685_SetLevel(PCA_CHANNEL_1, 0);
+            PCA9685_SetLevel(PCA_CHANNEL_2, 1);
+        } else {
+            DEBUG("backward...\r\n");
+           // PCA9685_SetLevel(PCA_CHANNEL_1, 1);
+            PCA9685_SetLevel(PCA_CHANNEL_2, 0);
+                }
+
+	}
 }
 
 

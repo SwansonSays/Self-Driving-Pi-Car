@@ -171,4 +171,34 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
         }
     }
 }
+void turn_ninety(DIRECTION direc,int power){
+        Motor_Stop(MOTORA);
+        Motor_Stop(MOTORB);     
+        clearLS7336RCounter(SPI0_CE0);
+        clearLS7336RCounter(SPI0_CE1);
 
+        if(direc == LEFT){
+                Motor_Change_Direc(MOTORB,BACKWARD);
+                Motor_Increase_Speed(MOTORB,0,power);
+                Motor_Increase_Speed(MOTORA,0,power);		
+		while((readLS7336RCounter(SPI0_CE1)<=67.5)&&(readLS7336RCounter(SPI0_CE0)<=67.5)){
+
+				
+		}
+		Motor_Stop(MOTORA);
+        	Motor_Stop(MOTORB);
+	}else if( direc == RIGHT){
+                Motor_Change_Direc(MOTORA,BACKWARD);
+                Motor_Increase_Speed(MOTORB,0,power);
+                Motor_Increase_Speed(MOTORA,0,power);
+		while((readLS7336RCounter(SPI0_CE1)<=67.5)&&(readLS7336RCounter(SPI0_CE0)<=67.5)){
+
+
+                }
+                Motor_Stop(MOTORA);
+                Motor_Stop(MOTORB);
+
+
+
+	}
+}

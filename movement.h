@@ -33,6 +33,6 @@ typedef struct
 void turn_left(ProgramState* state, uint8_t* confidence);
 void turn_right(ProgramState* state, uint8_t* confidence);
 void go_straight(ProgramState* state, uint8_t* confidence);
-
+void turn_ninety(DIRECTION direc);
 
 #endif  /* _MOVEMENT_H */
