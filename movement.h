@@ -6,8 +6,8 @@
 #include "definitions.h"
 #include "MotorDriver.h"
 
-#define MOTOR_LEFT  MOTORB
-#define MOTOR_RIGHT MOTORA
+#define MOTOR_LEFT  MOTORA
+#define MOTOR_RIGHT MOTORB
 
 
 #define CONFIDENCE_THRESHOLD 8
