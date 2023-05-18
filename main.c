@@ -68,7 +68,7 @@ void read_lidar(void* args) {
     struct Params* data = (struct Params*)args;
     struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
 
-    while (!*(data->p_terminate)) {
+    while (1) {
         /* 
         *   Copy lidar scan to temparay struct because lidar scans faster then we can 
         *   proccess the data This avoids our data being overwritten while proccessing 
