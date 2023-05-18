@@ -193,11 +193,11 @@ int main(int argc, char* argv[])
 
     while (!terminate)
     {
-        /*printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
+        printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
             line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
             line_sensor_vals[3], line_sensor_vals[4], 
             state.inner_confidence, state.outer_confidence);
-        */
+        
         follow_line(line_sensor_vals, &state);
         usleep(1000);
     }
