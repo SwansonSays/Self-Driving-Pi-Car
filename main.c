@@ -55,7 +55,7 @@ struct Params
     /* Values of the most recent valid sensor reading */
     float theta;
     float distance;
-};
+}Params;
 
 struct Lidar_data {
     float theta;
@@ -71,7 +71,7 @@ void read_lidar(void* args) {
         *   Copy lidar scan to temparay struct because lidar scans faster then we can 
         *   proccess the data This avoids our data being overwritten while proccessing 
         */
-        memcpy(temp_data, (struct Params)args->shared, sizeof(struct Lidar_data));
+        memcpy(temp_data, (*args)->shared, sizeof(struct Lidar_data));
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data->quality > 10 && temp_data->distance < (struct Params)args->max_distance && temp_data->distance > 0) {
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 
     struct Params params;
 
-    params.shared = Lidar_data;
+    params.shared = data;
     params.left_theta = 270.0f;
     params.right_theta = 90.0f;
     params.max_distance = 400.0f;
