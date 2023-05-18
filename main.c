@@ -75,12 +75,12 @@ void read_lidar(void* args) {
         memcpy(temp_data, data->shared, sizeof(struct Lidar_data));
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
-        if (temp_data->quality > 10 && temp_data->distance < (struct Params)args->max_distance && temp_data->distance > 0) {
+        if (temp_data->quality > 10 && temp_data->distance < data->max_distance && temp_data->distance > 0) {
             /* If scan is inside our viewing range */
-            if (temp_data->theta > (struct Params*)args->left_theta || temp_data->theta < args->right_theta) {
+            if (temp_data->theta > data->left_theta || temp_data->theta < data->right_theta) {
                 printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data->theta, temp_data->distance, temp_data->quality);
-                args.theta = temp_data->theta;
-                args.distance = temp_data->distance;
+                data->theta = temp_data->theta;
+                data->distance = temp_data->distance;
             }
         }
     }
