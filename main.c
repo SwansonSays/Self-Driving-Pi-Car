@@ -64,6 +64,7 @@ struct Lidar_data {
 }Lidar_data;
 
 void read_lidar(void* args) {
+    struct Params* data = (Params*)args;
     struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
 
     while (1) {
@@ -71,7 +72,7 @@ void read_lidar(void* args) {
         *   Copy lidar scan to temparay struct because lidar scans faster then we can 
         *   proccess the data This avoids our data being overwritten while proccessing 
         */
-        memcpy(temp_data, (*args)->shared, sizeof(struct Lidar_data));
+        memcpy(temp_data, data->shared, sizeof(struct Lidar_data));
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data->quality > 10 && temp_data->distance < (struct Params)args->max_distance && temp_data->distance > 0) {
