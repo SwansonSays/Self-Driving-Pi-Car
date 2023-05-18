@@ -84,6 +84,8 @@ void read_lidar(void* args) {
                 data->distance = temp_data->distance;
             }
         }
+        free(temp_data);
+        temp_data = NULL;
     }
 }
 
