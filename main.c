@@ -66,7 +66,7 @@ struct Lidar_data {
 
 void read_lidar(void* args) {
     struct Params* data = (struct Params*)args;
-    struct Lidar_data* temp_data = (struct Lidar_data*)malloc(sizeof(struct Lidar_data));
+    struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
 
     while (!*(data->p_terminate)) {
         /* 
@@ -85,8 +85,8 @@ void read_lidar(void* args) {
             }
         }
     }
-    free(temp_data);
-    temp_data = NULL;
+    //free(temp_data);
+    //temp_data = NULL;
 }
 
 int main(int argc, char* argv[])
