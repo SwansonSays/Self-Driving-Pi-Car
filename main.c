@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
         {
             case LINE :
                 printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
-                if (object_in_viewport(params, (float)FRONTVIEW_LEFT, (float)FRONTVIEW_RIGHT, (float)OBSTACLE_DISTANCE)) {
+                if (object_in_viewport(params, 315, 45, 100)) {
                     printf("object in viewport true\n");
 		            state.mode = OBSTACLE;
                     break;
