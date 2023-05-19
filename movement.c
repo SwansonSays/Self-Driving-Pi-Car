@@ -222,4 +222,5 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 
     state->mode = LINE;
     printf("State = LINE\n");
+    fflush(stdout);
 }
