@@ -1,6 +1,6 @@
 #include "movement.h"
 #include "sensor.h"
-
+#include "lidar.h"
 
 /**
  * Helper function to increment a confidence value
@@ -172,3 +172,54 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
+
+bool object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
+{
+	printf("In obj in viewport\n");
+	printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
+    return ((params->theta > left_theta || params->theta < right_theta) 
+        && params->distance < max_distance); 
+}
+
+void check_infront(struct Params* params) {
+    printf("Checking in Front\n");
+	if (object_in_viewport(params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+		printf("Obstacle in front motors off!\n");
+		Motor_Stop(MOTOR_LEFT);
+		Motor_Stop(MOTOR_RIGHT);
+	}
+}
+
+void avoid_obstacle(struct Params* params, ProgramState* state)
+{
+    printf("Enter Obstacle Avoidance\n");
+    /* Turn right to avoid obstacle by defualt */
+//    turn_90(RIGHT);
+    printf("Turning Right\n");
+    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+        // something to the left
+        check_infront(params);
+//	go_straight();
+	printf("Going Straight\n");
+    }
+//    turn_90(LEFT);
+    printf("Turning Right\n");
+    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+        check_infront(params);
+//	go_straight();
+	printf("Going Straight\n");
+    }
+//    turn_90(LEFT);
+    printf("Turning Right\n");
+    while (/*linesensors not HIGH*/0){
+	check_infront(params);
+//	go_straight();
+	printf("Going Straight\n");
+    }
+    printf("Line Found\n");
+//    turn_90(RIGHT);
+    printf("Turning Right\n");
+
+    state->mode = LINE;
+    printf("State = LINE\n");
+}

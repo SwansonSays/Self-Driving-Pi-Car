@@ -15,6 +15,8 @@
 #include "sensor.h"
 #include "movement.h"
 
+#include <errno.h>
+#include "lidar.h"
 
 #define PIN_LINESENSOR_FRONT_L    5
 #define PIN_LINESENSOR_FRONT_C    6
@@ -25,6 +27,8 @@
 
 #define NUM_LINE_SENSORS    5
 #define NUM_MOTORS          2
+
+//#define OBSTACLE_DISTANCE   100
 
 
 static volatile bool terminate = false;
@@ -42,55 +46,65 @@ void init_program_state(ProgramState* state)
     state->speed_right = 100;
     state->inner_confidence = 0;
     state->outer_confidence = 0;
+    state->mode = LINE;
 }
-
+/*
 struct Params
 {
-    /* Pointer to shared struct */
+    /* Pointer to shared struct 
     struct Lidar_data* shared;
-    /* Params to set the viewing angle */
-    float right_theta;
-    float left_theta;
+    /* Params to set the viewing distance 
     float max_distance;
-    /* Values of the most recent valid sensor reading */
+    /* Values of the most recent valid sensor reading 
     float theta;
     float distance;
     bool* p_terminate;
-}Params;
+};
 
 struct Lidar_data {
     float theta;
     float distance;
     int quality;
-}Lidar_data;
-
-void read_lidar(void* args) {
-    struct Params* data = (struct Params*)args;
-    struct Lidar_data* temp_data = malloc(sizeof(struct Lidar_data));
+};
+*/
+void read_lidar(struct Params* data) {
+    //struct Params* data = (struct Params*)args;
+    printf("In lidar thread\n");
+    struct Lidar_data temp_data;
 
     while (!*(data->p_terminate)) {
         /* 
         *   Copy lidar scan to temparay struct because lidar scans faster then we can 
         *   proccess the data This avoids our data being overwritten while proccessing 
         */
-        memcpy(temp_data, data->shared, sizeof(struct Lidar_data));
+        memcpy(&temp_data, data->shared, sizeof(struct Lidar_data));
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
-        if (temp_data->quality > 10 && temp_data->distance < data->max_distance && temp_data->distance > 0) {
+        if (temp_data.quality > 10 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
             /* If scan is inside our viewing range */
-            if (temp_data->theta > data->left_theta || temp_data->theta < data->right_theta) {
-                printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data->theta, temp_data->distance, temp_data->quality);
-                data->theta = temp_data->theta;
-                data->distance = temp_data->distance;
-            }
+            printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
+            data->theta = temp_data.theta;
+            data->distance = temp_data.distance;
         }
     }
-    free(temp_data);
-    temp_data = NULL;
 }
 
 int main(int argc, char* argv[])
 {
+    /* Initilize shared memory */
+    const char* name = "SHARED_MEMORY";
+    int shm_fd = shm_open(name, O_RDONLY, 0666);
+    printf("fd = %lu\n", shm_fd);
+    struct Lidar_data* data = mmap(NULL, sizeof(struct Lidar_data), PROT_READ, MAP_SHARED, shm_fd, 0);
+
+	if(data < 0) {
+		printf("Failed to create shared memory: %s\n", strerror(errno));
+        exit(1);
+    }
+    else {
+        printf("It works somehow\n");
+        printf("data: %d %lu\n", data, data);
+    }
     /* Initialize motor driver */
     if(DEV_ModuleInit()) 
     {
@@ -114,16 +128,9 @@ int main(int argc, char* argv[])
 
     Motor_Init();
 
-    /* Initilize shared memory */
-    const char* name = "SHARED_MEMORY";
-    int shm_fd = shm_open(name, O_RDONLY, 0666);
-    struct Lidar_data* data = mmap(NULL, sizeof(struct Lidar_data), PROT_READ, MAP_SHARED, shm_fd, 0);
-
     struct Params params;
 
     params.shared = data;
-    params.left_theta = 270.0f;
-    params.right_theta = 90.0f;
     params.max_distance = 400.0f;
     params.theta = 0.0f;
     params.distance = 0.0f;
@@ -146,14 +153,14 @@ int main(int argc, char* argv[])
     /* GPIO pins for the motor speed counter */
     uint8_t counter_pins[] = {
         (uint8_t)SPI0_CE0,
-        (uint8_t)SPI0_CE1    
+        (uint8_t)SPI0_CE1
     };
 
     volatile uint8_t line_sensor_vals[NUM_LINE_SENSORS] = { 0 };
     SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
     pthread_t line_sensor_threads[NUM_LINE_SENSORS];
-    
-    volatile double hall_sensor_vals[NUM_MOTORS] = { 0 };    
+
+    volatile double hall_sensor_vals[NUM_MOTORS] = { 0 };
     CounterArgs* hall_sensor_args[NUM_MOTORS];
     pthread_t hall_sensor_threads[NUM_MOTORS];
 
@@ -193,12 +200,31 @@ int main(int argc, char* argv[])
 
     while (!terminate)
     {
-        printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
-            line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
-            line_sensor_vals[3], line_sensor_vals[4], 
-            state.inner_confidence, state.outer_confidence);
-        
-        follow_line(line_sensor_vals, &state);
+        switch (state.mode)
+        {
+            case LINE :
+printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
+                if (object_in_viewport(params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+                    printf("object in viewport true\n");
+		    state.mode = OBSTACLE;
+                    break;
+                }
+                printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
+                    line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
+                    line_sensor_vals[3], line_sensor_vals[4], 
+                    state.inner_confidence, state.outer_confidence);
+
+                follow_line(line_sensor_vals, &state);
+                break;
+
+            case OBSTACLE :
+                avoid_obstacle(params);
+		printf("Obstacle Avoided\n");
+                break;
+
+            default :
+                break;
+        }
         usleep(1000);
     }
     /* Clean up the line sensor thread routines and memory */

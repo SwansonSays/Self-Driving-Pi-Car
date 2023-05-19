@@ -279,9 +279,11 @@ int main(int argc, const char * argv[]) {
     const char* name = "SHARED_MEMORY";
 
     int shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-    ftruncate(shm_fd, sizeof(lidar_data));
+	printf("FD= %d\n", shm_open);    
+ftruncate(shm_fd, sizeof(lidar_data));
     struct lidar_data *data = (lidar_data*)mmap(NULL, sizeof(*data), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
+	printf("data = %d\n", data);
     // fetech result and print it out...
     while (1) {
         sl_lidar_response_measurement_node_hq_t nodes[8192];
@@ -292,12 +294,13 @@ int main(int argc, const char * argv[]) {
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
             for (int pos = 0; pos < (int)count ; ++pos) {
-                printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
+     /*           printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
                     (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT) ?"S ":"  ", 
                     (nodes[pos].angle_z_q14 * 90.f) / 16384.f,
                     nodes[pos].dist_mm_q2/4.0f,
                     nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
-                data->theta = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+      */ 
+         data->theta = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
                 data->distance = nodes[pos].dist_mm_q2 / 4.0f;
                 data->quality = nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
             }
