@@ -1,6 +1,6 @@
 #include "movement.h"
 #include "sensor.h"
-#include "lidar.h"
+
 
 /**
  * Helper function to increment a confidence value
@@ -183,7 +183,7 @@ bool object_in_viewport(struct Params* params, float left_theta, float right_the
 
 void check_infront(struct Params* params) {
     printf("Checking in Front\n");
-	if (object_in_viewport(params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+	if (object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
 		printf("Obstacle in front motors off!\n");
 		Motor_Stop(MOTOR_LEFT);
 		Motor_Stop(MOTOR_RIGHT);
@@ -196,15 +196,15 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     /* Turn right to avoid obstacle by defualt */
 //    turn_90(RIGHT);
     printf("Turning Right\n");
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         // something to the left
-        check_infront(params);
+        check_infront(&params);
 //	go_straight();
 	printf("Going Straight\n");
     }
 //    turn_90(LEFT);
     printf("Turning Right\n");
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         check_infront(params);
 //	go_straight();
 	printf("Going Straight\n");
@@ -220,6 +220,6 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 //    turn_90(RIGHT);
     printf("Turning Right\n");
 
-    //state->mode = LINE;
+    state->mode = LINE;
     printf("State = LINE\n");
 }

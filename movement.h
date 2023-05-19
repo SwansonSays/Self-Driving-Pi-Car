@@ -4,6 +4,7 @@
 
 #include <stdint.h>  /* uint8_t */
 #include <stdbool.h>
+#include "lidar.h"
 #include "definitions.h"
 #include "MotorDriver.h"
 
