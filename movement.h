@@ -14,16 +14,16 @@
 #define CONFIDENCE_MAX 100
 
 /* Angles of view if checking for obstacle in front, left, or right */
-#define FRONTVIEW_LEFT 315.0
-#define FRONTVIEW_RIGHT 45.0
+#define FRONTVIEW_LEFT 315.0f
+#define FRONTVIEW_RIGHT 45.0f
 
-#define LEFTVIEW_LEFT 180.0
-#define LEFTVIEW_RIGHT 0.0
+#define LEFTVIEW_LEFT 180.0f
+#define LEFTVIEW_RIGHT 0.0f
 
-#define RIGHTVIEW_LEFT 0.0
-#define RIGHTVIEW_RIGHT 180.0
+#define RIGHTVIEW_LEFT 0.0f
+#define RIGHTVIEW_RIGHT 180.0f
 
-#define OBSTACLE_DISTANCE 100.0
+#define OBSTACLE_DISTANCE 100.0f
 
 typedef enum
 {
