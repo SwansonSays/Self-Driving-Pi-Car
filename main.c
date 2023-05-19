@@ -203,23 +203,24 @@ int main(int argc, char* argv[])
         switch (state.mode)
         {
             case LINE :
-printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
-                if (object_in_viewport(params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+                printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
+                if (object_in_viewport(params, (float)FRONTVIEW_LEFT, (float)FRONTVIEW_RIGHT, (float)OBSTACLE_DISTANCE)) {
                     printf("object in viewport true\n");
-		    state.mode = OBSTACLE;
+		            state.mode = OBSTACLE;
                     break;
                 }
+                /*
                 printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
                     line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
                     line_sensor_vals[3], line_sensor_vals[4], 
                     state.inner_confidence, state.outer_confidence);
-
+                */
                 follow_line(line_sensor_vals, &state);
                 break;
 
             case OBSTACLE :
                 avoid_obstacle(params);
-		printf("Obstacle Avoided\n");
+		        printf("Obstacle Avoided\n");
                 break;
 
             default :
