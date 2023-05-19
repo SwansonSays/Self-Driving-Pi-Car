@@ -69,7 +69,7 @@ struct Lidar_data {
 */
 void read_lidar(struct Params* data) {
     //struct Params* data = (struct Params*)args;
-    printf("In lidar thread\n");
+    //printf("In lidar thread\n");
     struct Lidar_data temp_data;
 
     while (!*(data->p_terminate)) {
@@ -82,7 +82,7 @@ void read_lidar(struct Params* data) {
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data.quality > 10 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
             /* If scan is inside our viewing range */
-            printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
+            //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
             data->theta = temp_data.theta;
             data->distance = temp_data.distance;
         }
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
         switch (state.mode)
         {
             case LINE :
-                printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
+                //printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
                 if (object_in_viewport(params, 315.0f, 45.0f, 100.0f)) {
                     printf("object in viewport true\n");
 		            state.mode = OBSTACLE;
