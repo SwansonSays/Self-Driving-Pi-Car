@@ -12,11 +12,12 @@
 
 #include <pigpio.h>
 
+#include "lidar.h"
 #include "sensor.h"
 #include "movement.h"
 
 #include <errno.h>
-#include "lidar.h"
+
 
 #define PIN_LINESENSOR_FRONT_L    5
 #define PIN_LINESENSOR_FRONT_C    6
