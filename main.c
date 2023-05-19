@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
                 break;
 
             case OBSTACLE :
-                avoid_obstacle(params);
+                avoid_obstacle(params, &state);
 		        printf("Obstacle Avoided\n");
                 break;
 
