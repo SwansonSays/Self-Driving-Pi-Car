@@ -220,6 +220,6 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 //    turn_90(RIGHT);
     printf("Turning Right\n");
 
-    state->mode = LINE;
+    //state->mode = LINE;
     printf("State = LINE\n");
 }

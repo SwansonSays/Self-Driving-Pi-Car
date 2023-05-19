@@ -3,6 +3,7 @@
 
 
 #include <stdint.h>  /* uint8_t */
+#include <stdbool.h>
 #include "definitions.h"
 #include "MotorDriver.h"
 
