@@ -53,5 +53,7 @@ void turn_left(ProgramState* state, uint8_t* confidence);
 void turn_right(ProgramState* state, uint8_t* confidence);
 void go_straight(ProgramState* state, uint8_t* confidence);
 bool object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance);
+void check_infront(struct Params* params);
+void avoid_obstacle(struct Params* params, ProgramState* state);
 
 #endif  /* _MOVEMENT_H */
