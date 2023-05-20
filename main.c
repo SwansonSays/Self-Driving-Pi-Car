@@ -65,15 +65,15 @@ void read_lidar(struct Params* data) {
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data.quality > 0 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
-            if (temp_data.distance < data->distance || data->age > 5000) {
+            if (temp_data.distance < data->distance || data->age > 500000) {
                 /* If scan is inside our viewing range */
                 //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
                 data->theta = temp_data.theta;
                 data->distance = temp_data.distance;
                 data->age = 0;
             }
-            data->age++;
         }
+	data->age++;
         /*
         else {
 	    temp_data.theta = -1.0f;
@@ -196,10 +196,10 @@ int main(int argc, char* argv[])
     //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     while (!terminate)
     {
-        printf("Object forward: %d\n", object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE));
+        //printf("Object forward: %d\n", object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE));
         //printf("Object left: %d\n", object_in_viewport(&params, 180, 270, OBSTACLE_DISTANCE));
         //printf("Object right: %d\n", object_in_viewport(&params, 90, 180, OBSTACLE_DISTANCE));
-#if 0
+#if 1
         switch (state.mode)
         {
             case LINE :
