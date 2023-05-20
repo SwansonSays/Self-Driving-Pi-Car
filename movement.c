@@ -185,17 +185,17 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 
     /* If the reading is invalid, abort immediately */
     if (params->distance < 0 || params->theta < 0) {
-	    printf("theta or distance < 0 aborting\n");
+	    printf("theta or distance < 0 aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
 	    return 0; 
     }
     /* Ignore a reading for an object that is too far away */
     if (params->distance > max_distance) {
-	    printf("distance > max aborting\n");
+	    printf("distance > max aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
         return 0; 
     }
     /* Ignore a reading if the age is greater then max */
     if (params->age >= MAX_AGE) {
-        printf("age > max aborting\n");
+        printf("age > max aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
         return 0; 
     }
     /* Account for the overlap across zero degrees */
