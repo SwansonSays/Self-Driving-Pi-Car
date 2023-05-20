@@ -178,7 +178,7 @@ bool object_in_viewport(struct Params* params, float left_theta, float right_the
 	//printf("In obj in viewport\n");
 	//printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
 
-    printf("THETA %f DISTANCE %f\n", params->theta, params->distance);
+    printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
     /* If the reading is invalid, abort immediately */
     if (params->distance < 0 || params->theta < 0) { return false; }
     /* Ignore a reading for an object that is too far away */
