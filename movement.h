@@ -52,7 +52,7 @@ void go_straight(ProgramState* state, uint8_t* confidence);
 void set_turn_direction(ProgramState* state, DIR dir);
 void turn_90(ProgramState* state, DIR dir);
 
-bool object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance);
+int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance);
 void check_infront(struct Params* params);
 void avoid_obstacle(struct Params* params, ProgramState* state);
 

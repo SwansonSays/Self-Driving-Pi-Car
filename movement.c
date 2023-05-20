@@ -173,7 +173,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 }
 
 
-bool object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
+int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
 {
     printf("In obj in viewport\n");
 	//printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
@@ -181,17 +181,17 @@ bool object_in_viewport(struct Params* params, float left_theta, float right_the
     printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
     /* If the reading is invalid, abort immediately */
     if (params->distance <= 1 || params->theta < 0) {
-	printf("theta or distance < 0 aborting\n");
-	 return false; 
+	    printf("theta or distance < 0 aborting\n");
+	    return -1; 
     }
     /* Ignore a reading for an object that is too far away */
     if (params->distance > max_distance) {
-	printf("distance > max aborting\n");
-        return false; 
+	    printf("distance > max aborting\n");
+        return -1; 
     }
     if (params->age > 500000) {
         printf("age > max aborting\n");
-        return false; 
+        return -1; 
     }
     /* Account for the overlap across zero degrees */
     if (left_theta > right_theta) {
@@ -220,7 +220,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Right turn done\n");
     //params->age = AGE_REST_HIGH;
     printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
-    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
         // something to the left
         check_infront(&params);
         printf("Going Straight\n");
