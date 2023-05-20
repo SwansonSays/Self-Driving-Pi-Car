@@ -231,7 +231,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
         // something to the left
-        check_infront(&params);
+        //check_infront(&params);
         printf("Going Straight\n");
     }
 
@@ -239,14 +239,14 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 
 
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
-        check_infront(params);
+        //check_infront(params);
     }
 
     turn_90(state, LEFT);
 
 
     while (/*linesensors not HIGH*/0){
-        check_infront(params);
+        //check_infront(params);
         printf("Going Straight\n");
     }
     printf("Line Found\n");
