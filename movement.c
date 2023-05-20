@@ -172,15 +172,19 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
-
+/* 
+*  Checks the current closest object in params too see if it is within a viewport of left_theta
+*  to right_theta and that is closer then max_distance.
+*  Returns -1 if scan is invalid
+*  Returns 0 if the scan is valid but not within our viewport
+*  Returns 1 if scan is valid and within viewport 
+*/
 int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
 {
-    printf("In obj in viewport\n");
-	//printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
-
     printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
+
     /* If the reading is invalid, abort immediately */
-    if (params->distance <= 1 || params->theta < 0) {
+    if (params->distance < 1 || params->theta < 0) {
 	    printf("theta or distance < 0 aborting\n");
 	    return -1; 
     }
@@ -189,7 +193,8 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 	    printf("distance > max aborting\n");
         return -1; 
     }
-    if (params->age > 500000) {
+    /* Ignore a reading if the age is greater then max */
+    if (params->age > MAX_AGE) {
         printf("age > max aborting\n");
         return -1; 
     }
@@ -208,17 +213,19 @@ void check_infront(struct Params* params) {
 		printf("Obstacle in front motors off!\n");
 		Motor_Stop(MOTOR_LEFT);
 		Motor_Stop(MOTOR_RIGHT);
-	}
+    }
+    else {
+        set_turn_direction(state, FORWARD);
+    }
 }
 
 void avoid_obstacle(struct Params* params, ProgramState* state)
 {
     printf("Enter Obstacle Avoidance\n");
     /* Turn right to avoid obstacle by defualt */
-    printf("Turning Right\n");
     turn_90(state, RIGHT);
-    printf("Right turn done\n");
-    //params->age = AGE_REST_HIGH;
+
+
     printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
         // something to the left
@@ -227,14 +234,14 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     }
 
     turn_90(state, LEFT);
-    //params->age = AGE_REST_HIGH;
+
 
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
         check_infront(params);
     }
 
     turn_90(state, LEFT);
-    //params->age = AGE_REST_HIGH;
+
 
     while (/*linesensors not HIGH*/0){
         check_infront(params);
@@ -243,7 +250,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Line Found\n");
 
     turn_90(state, RIGHT);
-    //params->age = AGE_REST_HIGH;
+
     printf("Turning Right\n");
 
     state->mode = LINE;
