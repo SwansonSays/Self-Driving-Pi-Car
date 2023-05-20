@@ -215,7 +215,9 @@ void check_infront(struct Params* params) {
 		Motor_Stop(MOTOR_RIGHT);
     }
     else {
-        set_turn_direction(state, FORWARD);
+        printf("FORWARD\n");
+        Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_FORWARD, 100);
+        Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, 100);
     }
 }
 
