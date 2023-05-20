@@ -63,6 +63,7 @@ void read_lidar(struct Params* data) {
         */
         memcpy(&temp_data, data->shared, sizeof(struct Lidar_data));
         if (data->age > 500000) { data->age = 0; }
+
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data.quality > 0 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
             if (temp_data.distance < data->distance || data->age > 500000) {
