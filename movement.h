@@ -27,6 +27,8 @@
 
 #define OBSTACLE_DISTANCE 300.0f
 
+#define AGE_REST_HIGH 500001
+
 typedef enum {
     LINE,
     OBSTACLE
