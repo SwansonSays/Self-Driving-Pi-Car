@@ -184,7 +184,7 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
     printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
 
     /* If the reading is invalid, abort immediately */
-    if (params->distance < 1 || params->theta < 0) {
+    if (params->distance < 0 || params->theta < 0) {
 	    printf("theta or distance < 0 aborting\n");
 	    return -1; 
     }
@@ -194,7 +194,7 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
         return -1; 
     }
     /* Ignore a reading if the age is greater then max */
-    if (params->age > MAX_AGE) {
+    if (params->age >= MAX_AGE) {
         printf("age > max aborting\n");
         return -1; 
     }
