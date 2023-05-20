@@ -188,8 +188,8 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    //Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
-    //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
+    Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
+    Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     while (!terminate)
     {
         //printf("Object forward: %d\n", object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE));

@@ -204,7 +204,7 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 		//printf("obst in view\n");
 		return 1;
 	} else { 
-		//printf("obst not in view\n");
+		printf("obst not in view THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
 		return 0; 
 	}
     }
@@ -213,7 +213,7 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 		//printf("Obst in view\n");
 		return true;
 	} else {
-	//printf("obst not in view\n");
+	    printf("obst not in view THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
 	return 0;
 	}
     }
