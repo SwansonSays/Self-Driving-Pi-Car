@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     params.shared = data;
     params.max_distance = 400.0f;
     params.theta = -1.0f;
-    params.distance = -1.0f;
+    params.distance = 50000.0f;
     params.age = 0;
     params.p_terminate = &terminate;
 
