@@ -207,6 +207,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Enter Obstacle Avoidance\n");
     /* Turn right to avoid obstacle by defualt */
     turn_90(state, RIGHT);
+    params->age = 5001;
 
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         // something to the left
@@ -215,12 +216,14 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     }
 
     turn_90(state, LEFT);
+    params->age = 5001;
 
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         check_infront(params);
     }
 
     turn_90(state, LEFT);
+    params->age = 5001;
 
     while (/*linesensors not HIGH*/0){
         check_infront(params);
@@ -229,6 +232,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Line Found\n");
 
     turn_90(state, RIGHT);
+    params->age = 5001;
     printf("Turning Right\n");
 
     state->mode = LINE;
