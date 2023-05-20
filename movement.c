@@ -229,7 +229,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     turn_90(state, LEFT);
     //params->age = AGE_REST_HIGH;
 
-    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
+    while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0) {
         check_infront(params);
     }
 
