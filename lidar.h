@@ -11,6 +11,7 @@ struct Params
 	/* Values of the most recent valid sensor reading */
 	float theta;
 	float distance;
+	int age;
 	bool* p_terminate;
 };
 
