@@ -64,11 +64,17 @@ void read_lidar(struct Params* data) {
         memcpy(&temp_data, data->shared, sizeof(struct Lidar_data));
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
-        if (temp_data.quality > 10 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
+        if (temp_data.quality > 0 && temp_data.distance < data->max_distance && temp_data.distance > 0) {
             /* If scan is inside our viewing range */
-            //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
+            printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
             data->theta = temp_data.theta;
             data->distance = temp_data.distance;
+        }
+        else {
+	    temp_data.theta = -1.0f;
+	    temp_data.distance = -1.0f;
+            data->distance = -1.0f;
+            data->theta = -1.0f;
         }
     }
 }
@@ -116,8 +122,8 @@ int main(int argc, char* argv[])
 
     params.shared = data;
     params.max_distance = 400.0f;
-    params.theta = 0.0f;
-    params.distance = 0.0f;
+    params.theta = -1.0f;
+    params.distance = -1.0f;
     params.p_terminate = &terminate;
 
     ProgramState state;
@@ -179,11 +185,14 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
-    Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
-
+    //Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
+    //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     while (!terminate)
     {
+        //printf("Object forward: %d\n", object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE));
+        printf("Object left: %d\n", object_in_viewport(&params, 180, 270, OBSTACLE_DISTANCE));
+        //printf("Object right: %d\n", object_in_viewport(&params, 90, 180, OBSTACLE_DISTANCE));
+#if 0
         switch (state.mode)
         {
             case LINE :
@@ -199,7 +208,7 @@ int main(int argc, char* argv[])
                     line_sensor_vals[3], line_sensor_vals[4], 
                     state.inner_confidence, state.outer_confidence);
                 */
-                follow_line(line_sensor_vals, &state);
+                //follow_line(line_sensor_vals, &state);
                 break;
 
             case OBSTACLE :
@@ -210,7 +219,9 @@ int main(int argc, char* argv[])
             default :
                 break;
         }
+#endif
         usleep(1000);
+
     }
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)

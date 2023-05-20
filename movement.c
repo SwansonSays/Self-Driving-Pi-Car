@@ -175,10 +175,22 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 
 bool object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
 {
-	printf("In obj in viewport\n");
-	printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
-    return ((params->theta > left_theta || params->theta < right_theta) 
-        && params->distance < max_distance); 
+	//printf("In obj in viewport\n");
+	//printf("theta[%f] left_theta[%f] right_theta[%f] max_distance[%f] distance[%f]\n",params->theta, left_theta, right_theta, max_distance, params->distance);
+
+    printf("THETA %f DISTANCE %f\n", params->theta, params->distance);
+    /* If the reading is invalid, abort immediately */
+    if (params->distance < 0 || params->theta < 0) { return false; }
+    /* Ignore a reading for an object that is too far away */
+    if (params->distance > max_distance) { return false; }
+
+    /* Account for the overlap across zero degrees */
+    if (left_theta > right_theta) {
+        return params->theta >= left_theta || params->theta <= right_theta;
+    }
+    else {
+        return params->theta >= left_theta && params->theta <= right_theta;
+    }
 }
 
 void check_infront(struct Params* params) {
@@ -195,29 +207,32 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Enter Obstacle Avoidance\n");
     /* Turn right to avoid obstacle by defualt */
 //    turn_90(RIGHT);
-    printf("Turning Right\n");
+    turn_90(state, RIGHT);
+
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         // something to the left
         check_infront(&params);
 //	go_straight();
-	printf("Going Straight\n");
+        printf("Going Straight\n");
     }
 //    turn_90(LEFT);
-    printf("Turning Right\n");
+    turn_90(state, LEFT);
+
     while (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
         check_infront(params);
 //	go_straight();
-	printf("Going Straight\n");
     }
 //    turn_90(LEFT);
-    printf("Turning Right\n");
+        turn_90(state, LEFT);
+
     while (/*linesensors not HIGH*/0){
-	check_infront(params);
+        check_infront(params);
 //	go_straight();
-	printf("Going Straight\n");
+        printf("Going Straight\n");
     }
     printf("Line Found\n");
 //    turn_90(RIGHT);
+    turn_90(state, RIGHT);
     printf("Turning Right\n");
 
     state->mode = LINE;

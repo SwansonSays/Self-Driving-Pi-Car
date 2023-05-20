@@ -25,7 +25,7 @@
 #define RIGHTVIEW_LEFT 0.0f
 #define RIGHTVIEW_RIGHT 180.0f
 
-#define OBSTACLE_DISTANCE 100.0f
+#define OBSTACLE_DISTANCE 300.0f
 
 typedef enum {
     LINE,
