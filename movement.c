@@ -180,10 +180,10 @@ bool object_in_viewport(struct Params* params, float left_theta, float right_the
 
     printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
     /* If the reading is invalid, abort immediately */
-    if (params->distance < 0 || params->theta < 0) { return false; }
+    if (params->distance <= 0 || params->theta < 0) { return false; }
     /* Ignore a reading for an object that is too far away */
     if (params->distance > max_distance) { return false; }
-
+    if (params->age > 500000) { return false; }
     /* Account for the overlap across zero degrees */
     if (left_theta > right_theta) {
         return params->theta >= left_theta || params->theta <= right_theta;
