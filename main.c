@@ -60,8 +60,6 @@ void read_lidar(struct Params* data) {
         *   proccess the data This avoids our data being overwritten while proccessing 
         */
         memcpy(&temp_data, data->shared, sizeof(struct Lidar_data));
-        /* Reset age if scan is too old */
-        if (data->age > MAX_AGE) { data->age = 0; }
 
         /* If quality of the scan is good and the distance is greater then 0 but less then max */
         if (temp_data.quality > 0 && (temp_data.distance < data->max_distance && temp_data.distance > 0)) {
@@ -69,15 +67,17 @@ void read_lidar(struct Params* data) {
             *   If distance of scan is closer than the closest object or if the age of the closest object has expired,
             *   Set the distance and theta of the scan as the closest object and reset age
             */
-            if (temp_data.distance < data->distance || data->age > MAX_AGE) {
+            if (temp_data.distance < data->distance || data->age >= MAX_AGE) {
                 //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
                 data->theta = temp_data.theta;
                 data->distance = temp_data.distance;
                 data->age = 0;
             }
         }
-    /* increment the age of the current scan */
-	data->age++;
+        /* increment the age of the current scan */
+	if (data->age <= MAX_AGE) {
+	    data->age++;
+	}
     }
 }
 
