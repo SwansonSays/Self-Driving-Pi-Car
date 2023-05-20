@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     struct Params params;
 
     params.shared = data;
-    params.max_distance = 400.0f;
+    params.max_distance = 500.0f;
     params.theta = -1.0f;
     params.distance = 50000.0f;
     params.age = 0;

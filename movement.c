@@ -185,25 +185,37 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 
     /* If the reading is invalid, abort immediately */
     if (params->distance < 0 || params->theta < 0) {
-	    printf("theta or distance < 0 aborting\n");
-	    return -1; 
+	    //printf("theta or distance < 0 aborting\n");
+	    return 0; 
     }
     /* Ignore a reading for an object that is too far away */
     if (params->distance > max_distance) {
-	    printf("distance > max aborting\n");
-        return -1; 
+	    //printf("distance > max aborting\n");
+        return 0; 
     }
     /* Ignore a reading if the age is greater then max */
     if (params->age >= MAX_AGE) {
-        printf("age > max aborting\n");
-        return -1; 
+        //printf("age > max aborting\n");
+        return 0; 
     }
     /* Account for the overlap across zero degrees */
     if (left_theta > right_theta) {
-        return params->theta >= left_theta || params->theta <= right_theta;
+       if (params->theta >= left_theta || params->theta <= right_theta) {
+		//printf("obst in view\n");
+		return 1;
+	} else { 
+		//printf("obst not in view\n");
+		return 0; 
+	}
     }
     else {
-        return params->theta >= left_theta && params->theta <= right_theta;
+	if (params->theta >= left_theta && params->theta <= right_theta) {
+		//printf("Obst in view\n");
+		return true;
+	} else {
+	//printf("obst not in view\n");
+	return 0;
+	}
     }
 }
 
@@ -226,26 +238,26 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     printf("Enter Obstacle Avoidance\n");
     /* Turn right to avoid obstacle by defualt */
     turn_90(state, RIGHT);
-
+    //usleep(500000);
 
     printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
-    while ((object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0)) && !(*(params->p_terminate))) {
+    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) /*|| (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0))*/ && !(*(params->p_terminate))) {
         // something to the left
         //check_infront(&params);
-        printf("Going Straight\n");
+        //printf("Going Straight\n");
     }
 
     turn_90(state, LEFT);
 
 
-    while ((object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0)) && !(*(params->p_terminate))) {
+    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) /*|| (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0))*/ && !(*(params->p_terminate))) {
         //check_infront(params);
     }
 
     turn_90(state, LEFT);
 
 
-    while (/*linesensors not HIGH*/0){
+    while (/*!(*(params->p_terminate))*/ 0){
         //check_infront(params);
         printf("Going Straight\n");
     }
