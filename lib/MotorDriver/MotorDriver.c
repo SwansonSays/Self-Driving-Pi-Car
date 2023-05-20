@@ -55,6 +55,12 @@ void Motor_Change_Direc(DIR dir){
     }
 }
 
+void Motor_Set_Direction(UBYTE motor, DIR direction, UWORD speed)
+{
+    Motor_Stop(motor);
+    Motor_Run(motor, direction, speed);
+}
+
 
 /**
  * Accelerate from the current power level to desired.

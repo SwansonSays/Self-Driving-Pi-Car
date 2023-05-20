@@ -30,9 +30,22 @@
 #define MOTORA       0
 #define MOTORB       1
 
+#define MOTOR_LEFT  MOTORA
+#define MOTOR_RIGHT MOTORB
+
+/* Account for opposite mounting orientations of motors */
+#define MOTOR_LEFT_FORWARD      FORWARD
+#define MOTOR_LEFT_BACKWARD     BACKWARD
+
+#define MOTOR_RIGHT_FORWARD     BACKWARD
+#define MOTOR_RIGHT_BACKWARD    FORWARD
+
 typedef enum {
     FORWARD  = 1,
     BACKWARD  ,
+    STRAIGHT,
+    LEFT,
+    RIGHT
 } DIR;
 
 void Motor_Init(void);
@@ -41,6 +54,7 @@ void Motor_Run(UBYTE motor, DIR dir, UWORD speed);
 void Motor_Stop(UBYTE motor);
 
 void Motor_Change_Direc(DIR dir);
+void Motor_Set_Direction(UBYTE motor, DIR direction, UWORD speed);
 
 UWORD Motor_Increase_Speed(UBYTE motor,UWORD current,UWORD accel,int rate);
 UWORD Motor_Decrease_Speed(UBYTE motor,UWORD current,UWORD slow,int rate);
