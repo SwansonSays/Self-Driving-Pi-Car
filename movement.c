@@ -229,7 +229,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 
 
     printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) && !(*(params->p_terminate))/* || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0 */) {
+    while ((object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0)) && !(*(params->p_terminate))) {
         // something to the left
         //check_infront(&params);
         printf("Going Straight\n");
@@ -238,7 +238,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
     turn_90(state, LEFT);
 
 
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) && !(*(params->p_terminate))/* || object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0 */) {
+    while ((object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) || (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0)) && !(*(params->p_terminate))) {
         //check_infront(params);
     }
 
