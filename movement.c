@@ -181,7 +181,12 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 */
 int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
 {
+<<<<<<< HEAD
     //printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
+=======
+    #if 0
+    printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
+>>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
 
     /* If the reading is invalid, abort immediately */
     if (params->distance < 0 || params->theta < 0) {
@@ -217,6 +222,7 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
 	return 0;
 	}
     }
+    #endif
 }
 
 void check_infront(struct Params* params) {
@@ -235,6 +241,7 @@ void check_infront(struct Params* params) {
 
 void avoid_obstacle(struct Params* params, ProgramState* state)
 {
+    #if 0
     printf("Enter Obstacle Avoidance\n");
     /* Turn right to avoid obstacle by defualt */
     turn_90(state, RIGHT);
@@ -270,6 +277,7 @@ void avoid_obstacle(struct Params* params, ProgramState* state)
 
     state->mode = LINE;
     printf("State = LINE\n");
+    #endif
 }
 
 void set_turn_direction(ProgramState* state, DIR dir)

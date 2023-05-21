@@ -12,8 +12,8 @@
 
 #include <pigpio.h>
 
-#include "lidar.h"
 #include "sensor.h"
+#include "sonar.h"
 #include "movement.h"
 
 #include <errno.h>
@@ -26,6 +26,13 @@
 #define PIN_LINESENSOR_REAR_L     23
 #define PIN_LINESENSOR_REAR_R	  24
 
+#define PIN_SONAR_FRONT_ECHO      9
+#define PIN_SONAR_FRONT_TRIG      10
+
+#define PIN_SONAR_LEFT_ECHO       20
+#define PIN_SONAR_LEFT_TRIG       21
+
+#define NUM_SONAR_SENSORS   2
 #define NUM_LINE_SENSORS    5
 #define NUM_MOTORS          2
 
@@ -51,6 +58,7 @@ void init_program_state(ProgramState* state)
 }
 
 
+<<<<<<< HEAD
 void read_lidar(struct Params* data) {
     struct Lidar_data temp_data;
 
@@ -82,22 +90,10 @@ void read_lidar(struct Params* data) {
     }
 }
 
+=======
+>>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
 int main(int argc, char* argv[])
 {
-    /* Initilize shared memory */
-    const char* name = "SHARED_MEMORY";
-    int shm_fd = shm_open(name, O_RDONLY, 0666);
-    printf("fd = %lu\n", shm_fd);
-    struct Lidar_data* data = mmap(NULL, sizeof(struct Lidar_data), PROT_READ, MAP_SHARED, shm_fd, 0);
-
-	if(data < 0) {
-		printf("Failed to create shared memory: %s\n", strerror(errno));
-        exit(1);
-    }
-    else {
-        printf("data: %d %lu\n", data, data);
-    }
-
     /* Initialize motor driver */
     if(DEV_ModuleInit()) 
     {
@@ -119,10 +115,17 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    Motor_Init();
+    gpioSetMode(PIN_LINESENSOR_FRONT_L, PI_INPUT);
+    gpioSetMode(PIN_LINESENSOR_FRONT_C, PI_INPUT);
+    gpioSetMode(PIN_LINESENSOR_FRONT_R, PI_INPUT);
+    gpioSetMode(PIN_LINESENSOR_REAR_L, PI_INPUT);
+    gpioSetMode(PIN_LINESENSOR_REAR_R, PI_INPUT);
+    gpioSetMode(PIN_SONAR_FRONT_ECHO, PI_INPUT);
+    gpioSetMode(PIN_SONAR_FRONT_TRIG, PI_OUTPUT);
+    gpioSetMode(PIN_SONAR_LEFT_ECHO, PI_INPUT);
+    gpioSetMode(PIN_SONAR_LEFT_TRIG, PI_OUTPUT);
 
-    struct Params params;
-
+<<<<<<< HEAD
     params.shared = data;
     params.max_distance = 500.0f;
     params.theta = -1.0f;
@@ -130,6 +133,9 @@ int main(int argc, char* argv[])
     params.age = 0;
     params.refresh = 0;
     params.p_terminate = &terminate;
+=======
+    Motor_Init();
+>>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
 
     ProgramState state;
     init_program_state(&state);
@@ -159,9 +165,21 @@ int main(int argc, char* argv[])
     CounterArgs* hall_sensor_args[NUM_MOTORS];
     pthread_t hall_sensor_threads[NUM_MOTORS];
 
-    pthread_t lidar_thread;
+    pthread_t sonar_thread_front;
+    pthread_t sonar_thread_left;
 
-    int rc;
+    SonarArgs* sonar_args_front = malloc(sizeof(SonarArgs));
+    sonar_args_front->distance=0.0f;
+    sonar_args_front->pin_echo=(uint8_t)PIN_SONAR_FRONT_ECHO;
+    sonar_args_front->pin_trig=(uint8_t)PIN_SONAR_FRONT_TRIG;
+    sonar_args_front->p_terminate=&terminate;
+
+    SonarArgs* sonar_args_left = malloc(sizeof(SonarArgs));
+    sonar_args_left->distance=0.0f;
+    sonar_args_left->pin_echo=(uint8_t)PIN_SONAR_LEFT_ECHO;
+    sonar_args_left->pin_trig=(uint8_t)PIN_SONAR_LEFT_TRIG;
+    sonar_args_left->p_terminate=&terminate;
+
     /* Create thread routines for the line sensors */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
     {
@@ -169,10 +187,8 @@ int main(int argc, char* argv[])
         line_sensor_args[i]->p_sensor_val = &line_sensor_vals[i];
         line_sensor_args[i]->gpio_pin = line_sensor_pins[i];
         line_sensor_args[i]->p_terminate = &terminate;
-        /* Keep track of the pointer so it can be freed later */
-        rc = pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
+        pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
     }
-
     /* Create thread routines for the motors */
     for (size_t i = 0; i < NUM_MOTORS; i++)
     {
@@ -180,72 +196,86 @@ int main(int argc, char* argv[])
         hall_sensor_args[i]->speed_val = &hall_sensor_vals[i];
         hall_sensor_args[i]->chip_enable = counter_pins[i];
         hall_sensor_args[i]->p_terminate = &terminate;
-        /* Keep track of the pointer so it can be freed later */
-        rc = pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
+        pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
     }
+    /* Create thread routines for the sonar sensors */
+    pthread_create(&sonar_thread_front, NULL, read_sonar, (void*)sonar_args_front);
+    pthread_create(&sonar_thread_left, NULL, read_sonar, (void*)sonar_args_left);
 
-    /* cerate thread routines for the lidar */
-    pthread_create(&lidar_thread, NULL, read_lidar, (void*)&params);
 
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
+<<<<<<< HEAD
     Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
     Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
+=======
+    //Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
+    //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
+    int front_confidence = 0;
+    int left_confidence = 0;
+    float max_obj_distance = 30.0f;
+>>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
     while (!terminate)
     {
-        //printf("Object forward: %d\n", object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE));
-        //printf("Object left: %d\n", object_in_viewport(&params, 180, 270, OBSTACLE_DISTANCE));
-        //printf("Object right: %d\n", object_in_viewport(&params, 90, 180, OBSTACLE_DISTANCE));
-#if 1
-        switch (state.mode)
-        {
-            case LINE :
-                //printf("Left %f right%f distance %f\n", FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE);
-                if (object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
-                    printf("object in viewport true\n");
-		            state.mode = OBSTACLE;
-                    break;
-                }
-                /*
-                printf("%u, %u, %u / (%d, %d) Confidence: (%d / %d)\n",
-                    line_sensor_vals[0], line_sensor_vals[1], line_sensor_vals[2], 
-                    line_sensor_vals[3], line_sensor_vals[4], 
-                    state.inner_confidence, state.outer_confidence);
-                */
-                //follow_line(line_sensor_vals, &state);
-                break;
-
-            case OBSTACLE :
-                avoid_obstacle(&params, &state);
-		        printf("Obstacle Avoided\n");
-                break;
-
-            default :
-                break;
+        //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
+        if (sonar_args_front->distance > 0.0f && sonar_args_front->distance < max_obj_distance) {
+            if (front_confidence < 100) {
+                front_confidence += 1;
+            }
         }
-#endif
-        usleep(1000);
+        else {
+            if (front_confidence > 0) {
+                front_confidence -= 1;
+            }
+        }
+        if (sonar_args_left->distance > 0.0f && sonar_args_left-> distance < max_obj_distance) {
+            if (left_confidence < 100) {
+                left_confidence += 1;
+            }
+        }
+        else {
+            if (left_confidence > 0) {
+                left_confidence -= 1;
+            }
+        }
+        if (front_confidence > 10) {
+            printf("Object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
+        }
+        else {
+            printf("NO object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
+        }
+        if (left_confidence > 10) {
+            printf("Object to left %3.2f (%d)\n", sonar_args_left->distance, left_confidence);
+        }
+        else {
+            printf("NO object to left%3.2f (%d)\n", sonar_args_left->distance, left_confidence);
+        }
 
+        usleep(1000);
     }
+    pthread_join(sonar_thread_front, NULL);
+    free(sonar_args_front);
+    sonar_args_front = NULL;
+
+    pthread_join(sonar_thread_left, NULL);
+    free(sonar_args_left);
+    sonar_args_left = NULL;
+
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
     {
-        rc = pthread_join(line_sensor_threads[i], NULL);
+        pthread_join(line_sensor_threads[i], NULL);
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
     }
     /* Clean up the motor thread routines and memory */
     for (size_t i = 0; i < 2; i++)
     {
-        rc = pthread_join(hall_sensor_threads[i], NULL);
+        pthread_join(hall_sensor_threads[i], NULL);
         free(hall_sensor_args[i]);
         hall_sensor_args[i] = NULL;
     } 
-    /* Clean up the lidar thread routines and shared memory */
-    munmap(NULL, sizeof(*data));
-    shm_unlink(name);
-    close(shm_fd);
 
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
