@@ -25,8 +25,8 @@ typedef struct {
 } CounterArgs;
 
 void read_sensor(SensorArgs* args);
-
 void read_counter(CounterArgs* args);
+
 
 
 #endif  /* _SENSOR_H */
