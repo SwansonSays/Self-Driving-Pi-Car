@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "movement.h"
 #include "sensor.h"
 
@@ -172,6 +174,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
+#if 0
 /* 
 *  Checks the current closest object in params too see if it is within a viewport of left_theta
 *  to right_theta and that is closer then max_distance.
@@ -232,46 +235,45 @@ void check_infront(struct Params* params) {
         Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, 100);
     }
 }
-
-void avoid_obstacle(struct Params* params, ProgramState* state)
+#endif 
+void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state)
 {
-    #if 0
-    printf("Enter Obstacle Avoidance\n");
-    /* Turn right to avoid obstacle by defualt */
-    turn_90(state, RIGHT);
-    params->refresh = 1;
-    //usleep(500000);
-
-    printf("OBST THETA %f DISTANCE %f AGE %f\n", params->theta, params->distance, params->age);
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) /*|| (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0))*/ && !(*(params->p_terminate))) {
-        // something to the left
-        //check_infront(&params);
-        //printf("Going Straight\n");
-    }
-
-    turn_90(state, LEFT);
-
-
-    while (object_in_viewport(params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) /*|| (object_in_viewport(&params, LEFTVIEW_LEFT, LEFTVIEW_RIGHT, OBSTACLE_DISTANCE) < 0))*/ && !(*(params->p_terminate))) {
-        //check_infront(params);
-    }
-
-    turn_90(state, LEFT);
-
-
-    while (/*!(*(params->p_terminate))*/ 0){
-        //check_infront(params);
-        printf("Going Straight\n");
-    }
-    printf("Line Found\n");
+    struct timespec start_time;       
+    struct timespec end_time;       
+    //time_t timeout_duration = 1;     /* Time spent waiting for echo signal */
+    time_t timeout_duration = 0.1;     /* Time spent waiting for echo signal */
+    int sleep_time = 1500000;
 
     turn_90(state, RIGHT);
 
-    printf("Turning Right\n");
+    clock_gettime(CLOCK_REALTIME, &start_time);
+    while (!object_present(args_left) && !*(state->p_terminate)) {
+        clock_gettime(CLOCK_REALTIME, &end_time);
+        if (end_time.tv_sec - start_time.tv_sec > timeout_duration) {
+             break; 
+        }
+    }
+    while (object_present(args_left) && !*(state->p_terminate)) {}
+    usleep(sleep_time);
 
-    state->mode = LINE;
-    printf("State = LINE\n");
-    #endif
+    turn_90(state, LEFT);
+
+    while (!object_present(args_left) && !*(state->p_terminate)) {
+        printf("(First Turn) Waiting for obstacle (%f) (%d)\n", args_left->distance, args_left->confidence);
+    }
+    while (object_present(args_left) && !*(state->p_terminate)) {
+        printf("(First Turn) Obstacle on LEFT (%f)\n", args_left->distance);
+    }
+    printf("(First Turn) Obstacle passed\n");
+    usleep(sleep_time);
+
+    turn_90(state, LEFT);
+
+    clock_gettime(CLOCK_REALTIME, &start_time);
+    while (!object_present(args_left) && !*(state->p_terminate)) {}
+    while (object_present(args_left) && !*(state->p_terminate)) {}
+    usleep(sleep_time);
+    turn_90(state, RIGHT);
 }
 
 void set_turn_direction(ProgramState* state, DIR dir)
@@ -309,9 +311,15 @@ void set_turn_direction(ProgramState* state, DIR dir)
 void turn_90(ProgramState* state, DIR dir)
 {
     DIR last_dir = state->last_dir;
-    if (dir == LEFT || dir == RIGHT) {
+    if (dir == LEFT)
+    {
         set_turn_direction(state, dir);
+        usleep(1300000);
     }
-    usleep(1300000);
+    else if (dir == RIGHT) 
+    {
+        set_turn_direction(state, dir);
+        usleep(1300000);
+    }
     set_turn_direction(state, FORWARD);
 }

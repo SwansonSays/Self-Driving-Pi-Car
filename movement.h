@@ -4,7 +4,7 @@
 
 #include <stdint.h>  /* uint8_t */
 #include <stdbool.h>
-#include "lidar.h"
+#include "sonar.h"
 #include "definitions.h"
 #include "MotorDriver.h"
 
@@ -41,6 +41,7 @@ typedef struct
     UBYTE speed_right;
     uint8_t inner_confidence;
     uint8_t outer_confidence;
+    bool* p_terminate;
 } ProgramState;
 
 void turn_left(ProgramState* state, uint8_t* confidence);
@@ -50,8 +51,8 @@ void go_straight(ProgramState* state, uint8_t* confidence);
 void set_turn_direction(ProgramState* state, DIR dir);
 void turn_90(ProgramState* state, DIR dir);
 
-int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance);
-void check_infront(struct Params* params);
-void avoid_obstacle(struct Params* params, ProgramState* state);
+//int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance);
+//void check_infront(struct Params* params);
+void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state);
 
 #endif  /* _MOVEMENT_H */

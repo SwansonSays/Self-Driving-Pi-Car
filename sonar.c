@@ -47,7 +47,6 @@ void read_sonar(SonarArgs* args)
             }
 
         }
-
         /* Echo pin is HIGH: Start waiting to receive a signal */
         clock_gettime(CLOCK_REALTIME, &start_time);
         clock_gettime(CLOCK_REALTIME, &timeout_start);
@@ -65,7 +64,28 @@ void read_sonar(SonarArgs* args)
 
         /* Calculate and display distance based on the time elapsed */
         args->distance = valid_reading ? distance_m(time_elapsed_ns) * 100.0f : -1.0f;
+        update_reading(args);
 
         usleep(150000);
     }
+}
+
+void update_reading(SonarArgs* args)
+{
+    //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
+    if (args->distance > 0.0f && args->distance < args->max_distance) {
+        if (args->confidence < 100) {
+            args->confidence += 1;
+        }
+    }
+    else {
+        if (args->confidence > 0) {
+            args->confidence -= 1;
+        }
+    }
+}
+
+bool object_present(SonarArgs* args)
+{
+    return args->confidence >= 5;
 }

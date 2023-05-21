@@ -55,6 +55,7 @@ void init_program_state(ProgramState* state)
     state->inner_confidence = 0;
     state->outer_confidence = 0;
     state->mode = LINE;
+    state->p_terminate = &terminate;
 }
 
 
@@ -129,12 +130,17 @@ int main(int argc, char* argv[])
     sonar_args_front->pin_echo=(uint8_t)PIN_SONAR_FRONT_ECHO;
     sonar_args_front->pin_trig=(uint8_t)PIN_SONAR_FRONT_TRIG;
     sonar_args_front->p_terminate=&terminate;
+    sonar_args_front->confidence = 0;
+    sonar_args_front->max_distance= 10.0f;
+
 
     SonarArgs* sonar_args_left = malloc(sizeof(SonarArgs));
     sonar_args_left->distance=0.0f;
     sonar_args_left->pin_echo=(uint8_t)PIN_SONAR_LEFT_ECHO;
     sonar_args_left->pin_trig=(uint8_t)PIN_SONAR_LEFT_TRIG;
     sonar_args_left->p_terminate=&terminate;
+    sonar_args_left->confidence = 0;
+    sonar_args_left->max_distance= 30.0f;
 
     /* Create thread routines for the line sensors */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
@@ -162,47 +168,20 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    //Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
-    //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
-    int front_confidence = 0;
-    int left_confidence = 0;
-    float max_obj_distance = 30.0f;
+    Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
+    Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
+    float max_obj_distance = 10.0f;
     while (!terminate)
     {
+        printf("%6.2f (%d)\n", sonar_args_front->distance, sonar_args_front->confidence);
         //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
-        if (sonar_args_front->distance > 0.0f && sonar_args_front->distance < max_obj_distance) {
-            if (front_confidence < 100) {
-                front_confidence += 1;
-            }
+        if (object_present(sonar_args_front)) {
+            printf("Object at front %6.2f (%d)\n", sonar_args_front->distance, sonar_args_front->confidence);
+            avoid_obstacle(sonar_args_front, sonar_args_left, &state);
         }
         else {
-            if (front_confidence > 0) {
-                front_confidence -= 1;
-            }
+            //follow_line();
         }
-        if (sonar_args_left->distance > 0.0f && sonar_args_left-> distance < max_obj_distance) {
-            if (left_confidence < 100) {
-                left_confidence += 1;
-            }
-        }
-        else {
-            if (left_confidence > 0) {
-                left_confidence -= 1;
-            }
-        }
-        if (front_confidence > 10) {
-            printf("Object at front %6.2f (%d)\n", sonar_args_front->distance, front_confidence);
-        }
-        else {
-            printf("NO object at front %6.2f (%d)\n", sonar_args_front->distance, front_confidence);
-        }
-        if (left_confidence > 10) {
-            printf("Object to left %6.2f (%d)\n", sonar_args_left->distance, left_confidence);
-        }
-        else {
-            printf("NO object to left%6.2f (%d)\n", sonar_args_left->distance, left_confidence);
-        }
-
         usleep(1000);
     }
     pthread_join(sonar_thread_front, NULL);

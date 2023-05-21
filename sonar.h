@@ -17,14 +17,18 @@
 
 typedef struct {
     float distance;
+    float max_distance;
     uint8_t pin_echo;
     uint8_t pin_trig;
     bool* p_terminate;
+    uint8_t confidence;
 } SonarArgs;
 
 
 float distance_m(time_t time_ns);
 void read_sonar(SonarArgs* args);
+void update_reading(SonarArgs* args);
+bool object_present(SonarArgs* args);
 
 
 #endif  /* _SONAR_H */
