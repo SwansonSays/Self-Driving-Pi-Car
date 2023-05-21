@@ -13,6 +13,7 @@ struct Params
 	float theta;
 	float distance;
 	int age;
+	bool refresh;
 	bool* p_terminate;
 };
 

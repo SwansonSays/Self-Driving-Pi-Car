@@ -67,11 +67,12 @@ void read_lidar(struct Params* data) {
             *   If distance of scan is closer than the closest object or if the age of the closest object has expired,
             *   Set the distance and theta of the scan as the closest object and reset age
             */
-            if (data->age >= MAX_AGE || temp_data.distance < data->distance) {
+            if (data->refresh || temp_data.distance < data->distance) {
                 //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
                 data->age = 0;
                 data->theta = temp_data.theta;
                 data->distance = temp_data.distance;
+                data->refresh = 0;
             }
         }
         /* increment the age of the current scan */
@@ -127,6 +128,7 @@ int main(int argc, char* argv[])
     params.theta = -1.0f;
     params.distance = 50000.0f;
     params.age = 0;
+    params.refresh = 0;
     params.p_terminate = &terminate;
 
     ProgramState state;
