@@ -166,11 +166,12 @@ int main(int argc, char* argv[])
     //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     int front_confidence = 0;
     int left_confidence = 0;
+    float max_obj_distance = 30.0f;
     while (!terminate)
     {
         //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
-        if (sonar_args_front->distance > 0 && sonar_args_front->distance < 15) {
-            if (front_confidence < 100)
+        if (sonar_args_front->distance > 0.0f && sonar_args_front->distance < max_obj_distance) {
+            if (front_confidence < 100) {
                 front_confidence += 1;
             }
         }
@@ -179,7 +180,7 @@ int main(int argc, char* argv[])
                 front_confidence -= 1;
             }
         }
-        if (sonar_args_left->distance > 0 && sonar_args_left-> distance < 15) {
+        if (sonar_args_left->distance > 0.0f && sonar_args_left-> distance < max_obj_distance) {
             if (left_confidence < 100) {
                 left_confidence += 1;
             }
@@ -190,10 +191,16 @@ int main(int argc, char* argv[])
             }
         }
         if (front_confidence > 10) {
-            printf("Object at front\n");
+            printf("Object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
+        }
+        else {
+            printf("NO object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
         }
         if (left_confidence > 10) {
-            printf("Object to left\n");
+            printf("Object to left %3.2f (%d)\n", sonar_args_left->distance, left_confidence);
+        }
+        else {
+            printf("NO object to left%3.2f (%d)\n", sonar_args_left->distance, left_confidence);
         }
 
         usleep(1000);
