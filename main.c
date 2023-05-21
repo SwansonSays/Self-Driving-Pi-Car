@@ -26,8 +26,8 @@
 #define PIN_LINESENSOR_REAR_L     23
 #define PIN_LINESENSOR_REAR_R	  24
 
-#define PIN_SONAR_FRONT_ECHO      9
-#define PIN_SONAR_FRONT_TRIG      10
+#define PIN_SONAR_FRONT_ECHO      12
+#define PIN_SONAR_FRONT_TRIG      16
 
 #define PIN_SONAR_LEFT_ECHO       20
 #define PIN_SONAR_LEFT_TRIG       21
@@ -58,40 +58,6 @@ void init_program_state(ProgramState* state)
 }
 
 
-<<<<<<< HEAD
-void read_lidar(struct Params* data) {
-    struct Lidar_data temp_data;
-
-    while (!*(data->p_terminate)) {
-        /* 
-        *   Copy lidar scan to temparay struct because lidar scans faster then we can 
-        *   proccess the data This avoids our data being overwritten while proccessing 
-        */
-        memcpy(&temp_data, data->shared, sizeof(struct Lidar_data));
-
-        /* If quality of the scan is good and the distance is greater then 0 but less then max */
-        if (temp_data.quality > 0 && (temp_data.distance < data->max_distance && temp_data.distance > 0)) {
-            /* 
-            *   If distance of scan is closer than the closest object or if the age of the closest object has expired,
-            *   Set the distance and theta of the scan as the closest object and reset age
-            */
-            if (data->refresh || temp_data.distance < data->distance) {
-                //printf("THETA [%f] | DISTANCE [%f] | QUALITY [%d]\n", temp_data.theta, temp_data.distance, temp_data.quality);
-                data->age = 0;
-                data->theta = temp_data.theta;
-                data->distance = temp_data.distance;
-                data->refresh = 0;
-            }
-        }
-        /* increment the age of the current scan */
-	if (data->age < MAX_AGE) {
-	    data->age++;
-	}
-    }
-}
-
-=======
->>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
 int main(int argc, char* argv[])
 {
     /* Initialize motor driver */
@@ -125,17 +91,7 @@ int main(int argc, char* argv[])
     gpioSetMode(PIN_SONAR_LEFT_ECHO, PI_INPUT);
     gpioSetMode(PIN_SONAR_LEFT_TRIG, PI_OUTPUT);
 
-<<<<<<< HEAD
-    params.shared = data;
-    params.max_distance = 500.0f;
-    params.theta = -1.0f;
-    params.distance = 50000.0f;
-    params.age = 0;
-    params.refresh = 0;
-    params.p_terminate = &terminate;
-=======
     Motor_Init();
->>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
 
     ProgramState state;
     init_program_state(&state);
@@ -206,16 +162,11 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-<<<<<<< HEAD
-    Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
-    Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
-=======
     //Motor_Run(MOTOR_LEFT, FORWARD, state.speed_left);
     //Motor_Run(MOTOR_RIGHT, BACKWARD, state.speed_right);
     int front_confidence = 0;
     int left_confidence = 0;
     float max_obj_distance = 30.0f;
->>>>>>> 5bed3ab842c81fe3890a66d50bfc8cf4bf45127f
     while (!terminate)
     {
         //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
@@ -240,16 +191,16 @@ int main(int argc, char* argv[])
             }
         }
         if (front_confidence > 10) {
-            printf("Object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
+            printf("Object at front %6.2f (%d)\n", sonar_args_front->distance, front_confidence);
         }
         else {
-            printf("NO object at front %3.2f (%d)\n", sonar_args_front->distance, front_confidence);
+            printf("NO object at front %6.2f (%d)\n", sonar_args_front->distance, front_confidence);
         }
         if (left_confidence > 10) {
-            printf("Object to left %3.2f (%d)\n", sonar_args_left->distance, left_confidence);
+            printf("Object to left %6.2f (%d)\n", sonar_args_left->distance, left_confidence);
         }
         else {
-            printf("NO object to left%3.2f (%d)\n", sonar_args_left->distance, left_confidence);
+            printf("NO object to left%6.2f (%d)\n", sonar_args_left->distance, left_confidence);
         }
 
         usleep(1000);
