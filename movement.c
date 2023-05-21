@@ -194,11 +194,11 @@ int object_in_viewport(struct Params* params, float left_theta, float right_thet
         return 0; 
     }
     /* Ignore a reading if the age is greater then max */
-    if (params->age >= MAX_AGE) {
+/*    if (params->age >= MAX_AGE) {
         printf("age > max aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
         return 0; 
     }
-    /* Account for the overlap across zero degrees */
+*/    /* Account for the overlap across zero degrees */
     if (left_theta > right_theta) {
        if (params->theta >= left_theta || params->theta <= right_theta) {
 		//printf("obst in view\n");

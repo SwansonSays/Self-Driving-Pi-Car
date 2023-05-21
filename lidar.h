@@ -1,7 +1,7 @@
 #ifndef _LIDAR_H
 #define _LIDAR_H
 
-#define MAX_AGE 50000000
+#define MAX_AGE 100000000
 
 struct Params
 {
