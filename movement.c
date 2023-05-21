@@ -247,22 +247,22 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     turn_90(state, RIGHT);
 
     clock_gettime(CLOCK_REALTIME, &start_time);
-    while (!object_present(args_left) && !*(state->p_terminate)) {
+    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
         clock_gettime(CLOCK_REALTIME, &end_time);
         if (end_time.tv_sec - start_time.tv_sec > timeout_duration) {
              break; 
         }
     }
-    while (object_present(args_left) && !*(state->p_terminate)) {}
+    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
     usleep(sleep_time);
 
     turn_90(state, LEFT);
 
-    while (!object_present(args_left) && !*(state->p_terminate)) {
-        printf("(First Turn) Waiting for obstacle (%f) (%d)\n", args_left->distance, args_left->confidence);
+    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
+        printf("(First Turn) Waiting for obstacle (%f) (%d)\n", args_left->distance_cm, args_left->confidence);
     }
-    while (object_present(args_left) && !*(state->p_terminate)) {
-        printf("(First Turn) Obstacle on LEFT (%f)\n", args_left->distance);
+    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
+        printf("(First Turn) Obstacle on LEFT (%f)\n", args_left->distance_cm);
     }
     printf("(First Turn) Obstacle passed\n");
     usleep(sleep_time);
@@ -270,8 +270,8 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     turn_90(state, LEFT);
 
     clock_gettime(CLOCK_REALTIME, &start_time);
-    while (!object_present(args_left) && !*(state->p_terminate)) {}
-    while (object_present(args_left) && !*(state->p_terminate)) {}
+    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
+    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
     usleep(sleep_time);
     turn_90(state, RIGHT);
 }

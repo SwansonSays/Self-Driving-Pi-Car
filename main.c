@@ -32,11 +32,8 @@
 #define PIN_SONAR_LEFT_ECHO       20
 #define PIN_SONAR_LEFT_TRIG       21
 
-#define NUM_SONAR_SENSORS   2
 #define NUM_LINE_SENSORS    5
 #define NUM_MOTORS          2
-
-//#define OBSTACLE_DISTANCE   100
 
 
 static volatile bool terminate = false;
@@ -58,22 +55,31 @@ void init_program_state(ProgramState* state)
     state->p_terminate = &terminate;
 }
 
-
 int main(int argc, char* argv[])
 {
     /* Initialize motor driver */
-    if(DEV_ModuleInit()) 
-    {
+    if(DEV_ModuleInit()) {
         exit(1);
     }
-
     /* Initialize pigpio library */
     if (gpioInitialise() < 0) 
     {
         fprintf(stderr, "Failed to initialize pigpio\n");
         exit(1);
     }
-
+    if (gpioSetMode(PIN_LINESENSOR_FRONT_L, PI_INPUT)
+        || gpioSetMode(PIN_LINESENSOR_FRONT_C, PI_INPUT)
+        || gpioSetMode(PIN_LINESENSOR_FRONT_R, PI_INPUT)
+        || gpioSetMode(PIN_LINESENSOR_REAR_L, PI_INPUT)
+        || gpioSetMode(PIN_LINESENSOR_REAR_R, PI_INPUT)
+        || gpioSetMode(PIN_SONAR_FRONT_ECHO, PI_INPUT)
+        || gpioSetMode(PIN_SONAR_FRONT_TRIG, PI_OUTPUT)
+        || gpioSetMode(PIN_SONAR_LEFT_ECHO, PI_INPUT)
+        || gpioSetMode(PIN_SONAR_LEFT_TRIG, PI_OUTPUT))
+    {
+        fprintf(stderr, "Failed to set pin modes\n");
+        exit(1);
+    }
     if (initLS7336RChip(SPI0_CE0) || initLS7336RChip(SPI0_CE1))
     {
         printf("Error initializing the LS7336R chip.\n");
@@ -81,16 +87,6 @@ int main(int argc, char* argv[])
         gpioTerminate();
         exit(1);
     }
-
-    gpioSetMode(PIN_LINESENSOR_FRONT_L, PI_INPUT);
-    gpioSetMode(PIN_LINESENSOR_FRONT_C, PI_INPUT);
-    gpioSetMode(PIN_LINESENSOR_FRONT_R, PI_INPUT);
-    gpioSetMode(PIN_LINESENSOR_REAR_L, PI_INPUT);
-    gpioSetMode(PIN_LINESENSOR_REAR_R, PI_INPUT);
-    gpioSetMode(PIN_SONAR_FRONT_ECHO, PI_INPUT);
-    gpioSetMode(PIN_SONAR_FRONT_TRIG, PI_OUTPUT);
-    gpioSetMode(PIN_SONAR_LEFT_ECHO, PI_INPUT);
-    gpioSetMode(PIN_SONAR_LEFT_TRIG, PI_OUTPUT);
 
     Motor_Init();
 
@@ -125,22 +121,17 @@ int main(int argc, char* argv[])
     pthread_t sonar_thread_front;
     pthread_t sonar_thread_left;
 
-    SonarArgs* sonar_args_front = malloc(sizeof(SonarArgs));
-    sonar_args_front->distance=0.0f;
-    sonar_args_front->pin_echo=(uint8_t)PIN_SONAR_FRONT_ECHO;
-    sonar_args_front->pin_trig=(uint8_t)PIN_SONAR_FRONT_TRIG;
-    sonar_args_front->p_terminate=&terminate;
-    sonar_args_front->confidence = 0;
-    sonar_args_front->max_distance= 10.0f;
+    SonarArgs sonar_args_front;
+    init_SonarArgs(&sonar_args_front, 
+        (uint8_t)PIN_SONAR_FRONT_TRIG, 
+        (uint8_t)PIN_SONAR_FRONT_ECHO);
+    sonar_args_front.p_terminate = &terminate;
 
-
-    SonarArgs* sonar_args_left = malloc(sizeof(SonarArgs));
-    sonar_args_left->distance=0.0f;
-    sonar_args_left->pin_echo=(uint8_t)PIN_SONAR_LEFT_ECHO;
-    sonar_args_left->pin_trig=(uint8_t)PIN_SONAR_LEFT_TRIG;
-    sonar_args_left->p_terminate=&terminate;
-    sonar_args_left->confidence = 0;
-    sonar_args_left->max_distance= 30.0f;
+    SonarArgs sonar_args_left;
+    init_SonarArgs(&sonar_args_left, 
+        (uint8_t)PIN_SONAR_LEFT_TRIG, 
+        (uint8_t)PIN_SONAR_LEFT_ECHO);
+    sonar_args_left.p_terminate = &terminate;
 
     /* Create thread routines for the line sensors */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)
@@ -161,36 +152,44 @@ int main(int argc, char* argv[])
         pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
     }
     /* Create thread routines for the sonar sensors */
-    pthread_create(&sonar_thread_front, NULL, read_sonar, (void*)sonar_args_front);
-    pthread_create(&sonar_thread_left, NULL, read_sonar, (void*)sonar_args_left);
-
+    pthread_create(&sonar_thread_front, NULL, watch_sonar, (void*)&sonar_args_front);
+    pthread_create(&sonar_thread_left, NULL, watch_sonar, (void*)&sonar_args_left);
 
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
-    Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
-    float max_obj_distance = 10.0f;
+    //Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
+    //Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
+
+    float front_obstacle_range_cm = 10.0f;
+    float left_obstacle_range_cm = 30.0f;
     while (!terminate)
     {
-        printf("%6.2f (%d)\n", sonar_args_front->distance, sonar_args_front->confidence);
+    #if 0
+        printf("FRONT %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+        printf("LEFT %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
         //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
-        if (object_present(sonar_args_front)) {
-            printf("Object at front %6.2f (%d)\n", sonar_args_front->distance, sonar_args_front->confidence);
-            avoid_obstacle(sonar_args_front, sonar_args_left, &state);
+    #else
+        if (object_present(sonar_args_front, front_obstacle_range_cm)) {
+            printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+            //avoid_obstacle(&sonar_args_front, &sonar_args_left, &state);
         }
         else {
+            printf("NO Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+        }
+        if (object_present(sonar_args_left, left_obstacle_range_cm)) {
+            printf("Object at left %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
+        }
+        else {
+            printf("NO Object at left %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
             //follow_line();
         }
+    #endif 
+        printf("\n\n");
         usleep(1000);
     }
     pthread_join(sonar_thread_front, NULL);
-    free(sonar_args_front);
-    sonar_args_front = NULL;
-
     pthread_join(sonar_thread_left, NULL);
-    free(sonar_args_left);
-    sonar_args_left = NULL;
 
     /* Clean up the line sensor thread routines and memory */
     for (size_t i = 0; i < NUM_LINE_SENSORS; i++)

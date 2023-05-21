@@ -1,4 +1,15 @@
+#include <math.h>   /* fabs() */
 #include "sonar.h"
+
+void init_SonarArgs(SonarArgs* args, uint8_t pin_trig, uint8_t pin_echo)
+{
+    args->distance_cm = 0.0f;
+    args->last_distance_cm = 0.0f;
+    args->confidence = 0;
+    args->pin_trig = pin_trig;
+    args->pin_echo = pin_echo;
+    args->p_terminate = NULL;
+}
 
 /**
  * Calculate a distance in meters based on elapsed time in nanoseconds.
@@ -13,79 +24,118 @@
  */
 float distance_m(time_t time_ns)
 {
-    return 0.5 * VSOUND_M_NS * time_ns ;
+    return 0.5f * (float)VSOUND_M_NS * time_ns;
 }
 
+float distance_cm(time_t time_ns)
+{
+    return distance_m(time_ns) * 100.0f;
+}
 
-void read_sonar(SonarArgs* args)
+/**
+ * Increment confidence, not to exceed CONFIDENCE_MAX
+ */
+static void increment_confidence(SonarArgs* args)
+{
+    if (args->confidence < SONAR_CONFIDENCE_MAX) { 
+        ++args->confidence; 
+    }
+}
+
+/**
+ * Decrement confidence based on a delta value.
+ * The confidence level will be decreased by delta,
+ * or will hit a floor of 0.
+ */
+static void decrement_confidence(SonarArgs* args, int delta)
+{
+    if (args->confidence < (int)delta) {
+        args->confidence = 0;
+    } 
+    else {
+        args->confidence -= (int) delta;
+    }
+}
+
+void* watch_sonar(SonarArgs* args)
 {
     struct timespec start_time;     /* Time when trigger signal was sent */
     struct timespec end_time;       /* Time when echo signal was received */
     time_t time_elapsed_ns = 0;     /* Time spent waiting for echo signal */
 
-    struct timespec timeout_start;       
-    struct timespec timeout_now;       
-    time_t timeout_max = 1000000000;
+    /* Create a timer to break out of infinite loops caused by bad readings */
+    struct timespec timeout;        
+    struct timespec now;       
+    time_t timeout_ns = (time_t)SONAR_TIMEOUT_NS;
 
-    bool valid_reading = true;
+    /* Delta is used to determine the distance between two successive readings.
+     * If the delta between two readings exceeds the threshold, the confidence
+     * will be reduced by delta * delta_weight. Otherwise confidence is incremented. */
+    int delta = 0;              /* Distance between readings */
+    int delta_weight = 2;       /* Adjust the impact of delta in confidence reduction */
+    int delta_threshold = 5;    /* Maximum delta for confidence increase. */
 
-    while(!*(args->p_terminate))
+    uint8_t consecutive_bad_readings = 0;
+    bool valid_reading;         /* Indicates that a timeout occurred and reading failed. */
+
+    /* Continue polling the sensor until termination occurs. */
+    while (!*(args->p_terminate))
     {
         valid_reading = true;
+
         /* Send a signal for 10 microseconds */
         gpioWrite(args->pin_trig, HIGH);
         usleep(10); /* microseconds */
         gpioWrite(args->pin_trig, LOW);
 
         /* Wait until the echo pin gets pulled up */
-        clock_gettime(CLOCK_REALTIME, &timeout_start);
-        while (gpioRead(args->pin_echo) == 0 && !*(args->p_terminate)) {
-            clock_gettime(CLOCK_REALTIME, &timeout_now);
-            if (timeout_now.tv_nsec - timeout_start.tv_nsec > timeout_max) { 
-                valid_reading = false;
-                break; 
-            }
-
+        clock_gettime(CLOCK_REALTIME, &timeout);
+        while (gpioRead(args->pin_echo) == 0 && valid_reading && !*(args->p_terminate)) {
+            clock_gettime(CLOCK_REALTIME, &now);
+            valid_reading = now.tv_nsec - timeout.tv_nsec < timeout_ns;
         }
         /* Echo pin is HIGH: Start waiting to receive a signal */
         clock_gettime(CLOCK_REALTIME, &start_time);
-        clock_gettime(CLOCK_REALTIME, &timeout_start);
-        while (gpioRead(args->pin_echo) == 1 && !*(args->p_terminate)) {
-            clock_gettime(CLOCK_REALTIME, &timeout_now);
-            if (timeout_now.tv_nsec - timeout_start.tv_nsec > timeout_max) { 
-                valid_reading = false;
-                break; 
+        clock_gettime(CLOCK_REALTIME, &timeout);
+        while (gpioRead(args->pin_echo) == 1 && valid_reading && !*(args->p_terminate)) {
+            clock_gettime(CLOCK_REALTIME, &now);
+            valid_reading = now.tv_nsec - timeout.tv_nsec < timeout_ns;
+        }
+        if (!valid_reading) 
+        {
+            /* Don't bother calculating distance on a bad reading. */
+            if (consecutive_bad_readings < 100) {
+                ++consecutive_bad_readings;
             }
+            decrement_confidence(args, consecutive_bad_readings * delta_weight);
         }
+        else  
+        {
+            consecutive_bad_readings = 0;
+            /* Signal has been received and echo pin is low again. End timer */
+            clock_gettime(CLOCK_REALTIME, &end_time);
+            time_elapsed_ns = end_time.tv_nsec - start_time.tv_nsec;
 
-        /* Signal has been received and echo pin is low again. End timer */
-        clock_gettime(CLOCK_REALTIME, &end_time);
-        time_elapsed_ns = end_time.tv_nsec - start_time.tv_nsec;
+            /* Calculate distance based on the time elapsed */
+            args->distance_cm = distance_cm(time_elapsed_ns);
 
-        /* Calculate and display distance based on the time elapsed */
-        args->distance = valid_reading ? distance_m(time_elapsed_ns) * 100.0f : -1.0f;
-        update_reading(args);
-
-        usleep(150000);
+            /* Update confidence based on the difference between current and last reading */
+            delta = (int) fabs(args->distance_cm - args->last_distance_cm) * delta_weight;
+            if (args->distance_cm > 0 && delta < delta_threshold) {
+                increment_confidence(args);
+            } 
+            else  {
+                decrement_confidence(args, (int)delta);
+            }
+            args->last_distance_cm = args->distance_cm;
+        }
+        /* Delay to limit polling frequency */
+        usleep(SONAR_PING_DELAY_US);
     }
 }
 
-void update_reading(SonarArgs* args)
+bool object_present(SonarArgs args, float max_distance_cm)
 {
-    //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
-    if (args->distance > 0.0f && args->distance < args->max_distance) {
-        if (args->confidence < 100) {
-            args->confidence += 1;
-        }
-    }
-    else {
-        if (args->confidence > 0) {
-            args->confidence -= 1;
-        }
-    }
-}
-
-bool object_present(SonarArgs* args)
-{
-    return args->confidence >= 5;
+    return (args.distance_cm <= max_distance_cm 
+        && args.confidence >= SONAR_CONFIDENCE_THRESHOLD);
 }
