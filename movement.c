@@ -272,9 +272,9 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     }
 
     /* Continue forward until the line is detected 
-     * (at least three sensors are active) */
+     * (at least two sensors are active) */
     int count = 0;
-    while (count < 3 && !*(args_left->p_terminate))
+    while (count < 2 && !*(args_left->p_terminate))
     {
         count = 0;
         for (int i = 0; i < 5; i++) {

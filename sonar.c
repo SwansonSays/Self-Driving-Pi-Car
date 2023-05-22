@@ -124,8 +124,7 @@ void* watch_sonar(SonarArgs* args)
             if (args->distance_cm > 0 && delta < delta_threshold) {
                 increment_confidence(args);
             } else  {
-                //decrement_confidence(args, (int)delta);
-                decrement_confidence(args, 5);
+                decrement_confidence(args, (int)delta);
             }
             /* Capture the current reading if confidence is high enough */
             if (delta < SONAR_MAX_DISTANCE_CM) {
