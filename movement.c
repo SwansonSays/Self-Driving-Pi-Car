@@ -318,7 +318,6 @@ void set_turn_direction(ProgramState* state, DIR dir)
 
 void turn_90(ProgramState* state, DIR dir)
 {
-    DIR last_dir = state->last_dir;
     if (dir == LEFT)
     {
         set_turn_direction(state, dir);
