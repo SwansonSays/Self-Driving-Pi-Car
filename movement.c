@@ -174,106 +174,108 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
-#if 0
-/* 
-*  Checks the current closest object in params too see if it is within a viewport of left_theta
-*  to right_theta and that is closer then max_distance.
-*  Returns -1 if scan is invalid
-*  Returns 0 if the scan is valid but not within our viewport
-*  Returns 1 if scan is valid and within viewport 
-*/
-int object_in_viewport(struct Params* params, float left_theta, float right_theta, float max_distance)
-{
-    //printf("THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-
-    /* If the reading is invalid, abort immediately */
-    if (params->distance < 0 || params->theta < 0) {
-	    printf("theta or distance < 0 aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-	    return 0; 
-    }
-    /* Ignore a reading for an object that is too far away */
-    if (params->distance > max_distance) {
-	    printf("distance > max aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-        return 0; 
-    }
-    /* Ignore a reading if the age is greater then max */
- /*   if (params->age >= MAX_AGE) {
-        printf("age > max aborting THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-        return 0; 
-    }
-    /* Account for the overlap across zero degrees */
-    if (left_theta > right_theta) {
-       if (params->theta >= left_theta || params->theta <= right_theta) {
-		//printf("obst in view\n");
-		return 1;
-	} else { 
-		printf("obst not in view THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-		return 0; 
-	}
-    }
-    else {
-	if (params->theta >= left_theta && params->theta <= right_theta) {
-		//printf("Obst in view\n");
-		return true;
-	} else {
-	    printf("obst not in view THETA %f DISTANCE %f AGE %d\n", params->theta, params->distance, params->age);
-	return 0;
-	}
-    }
-}
-
-void check_infront(struct Params* params) {
-    printf("Checking in Front\n");
-	if (object_in_viewport(&params, FRONTVIEW_LEFT, FRONTVIEW_RIGHT, OBSTACLE_DISTANCE)) {
-		printf("Obstacle in front motors off!\n");
-		Motor_Stop(MOTOR_LEFT);
-		Motor_Stop(MOTOR_RIGHT);
-    }
-    else {
-        printf("FORWARD\n");
-        Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_FORWARD, 100);
-        Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, 100);
-    }
-}
-#endif 
 void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state)
 {
-    struct timespec start_time;       
-    struct timespec end_time;       
-    //time_t timeout_duration = 1;     /* Time spent waiting for echo signal */
-    time_t timeout_duration = 0.1;     /* Time spent waiting for echo signal */
-    int sleep_time = 1500000;
+    int sleep_time = 1000000;
+    float left_distance = 40.0f;
+
+    int confidence = 0;
+
+    bool reading = true;
+    bool last_reading = true;
 
     turn_90(state, RIGHT);
 
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
-        clock_gettime(CLOCK_REALTIME, &end_time);
-        if (end_time.tv_sec - start_time.tv_sec > timeout_duration) {
-             break; 
+    /* Go forward as long as there is an object to the left */
+    confidence = 0;
+    while (!*(args_left->p_terminate)) {
+        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
+        reading = object_present(*args_left, left_distance);
+        if (reading == last_reading) {
+            if (confidence < 100) {
+                ++confidence;
+            }
         }
+        else {
+            confidence = 0;
+        }
+        last_reading = reading;
+
+        if (reading == false && confidence >= 50) {
+            break;
+        }
+        usleep(10000);
     }
-    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
+    printf("PASSED OBJECT\n");
+    usleep(sleep_time);
+    turn_90(state, LEFT);
+
+    /* Go forward until the object is detected to the left */
+    confidence = 0;
+    while (!*(args_left->p_terminate)) {
+        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
+        reading = object_present(*args_left, left_distance);
+        if (reading == last_reading) {
+            if (confidence < 100) {
+                ++confidence;
+            }
+        }
+        else {
+            confidence = 0;
+        }
+        last_reading = reading;
+
+        if (reading == true && confidence >= 50) {
+            break;
+        }
+        usleep(10000);
+    }
+    /* Go forward as long as there is an object to the left */
+    confidence = 0;
+    while (!*(args_left->p_terminate)) {
+        reading = object_present(*args_left, left_distance);
+        if (reading == last_reading) {
+            if (confidence < 100) {
+                ++confidence;
+            }
+        }
+        else {
+            confidence = 0;
+        }
+        last_reading = reading;
+
+        if (reading == false && confidence >= 50) {
+            break;
+        }
+        usleep(10000);
+    }
     usleep(sleep_time);
 
     turn_90(state, LEFT);
 
-    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
-        printf("(First Turn) Waiting for obstacle (%f) (%d)\n", args_left->distance_cm, args_left->confidence);
-    }
-    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {
-        printf("(First Turn) Obstacle on LEFT (%f)\n", args_left->distance_cm);
-    }
-    printf("(First Turn) Obstacle passed\n");
-    usleep(sleep_time);
+    /* Go forward until the object is detected to the left */
+    confidence = 0;
+    while (!*(args_left->p_terminate)) {
+        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
+        reading = object_present(*args_left, left_distance);
+        if (reading == last_reading) {
+            if (confidence < 100) {
+                ++confidence;
+            }
+        }
+        else {
+            confidence = 0;
+        }
+        last_reading = reading;
 
-    turn_90(state, LEFT);
+        if (reading == true && confidence >= 50) {
+            break;
+        }
+        usleep(10000);
+    }
 
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    while (!object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
-    while (object_present(*args_left, 30.0f) && !*(state->p_terminate)) {}
-    usleep(sleep_time);
-    turn_90(state, RIGHT);
+    Motor_Stop(MOTORA);
+    Motor_Stop(MOTORB);
 }
 
 void set_turn_direction(ProgramState* state, DIR dir)
@@ -314,7 +316,7 @@ void turn_90(ProgramState* state, DIR dir)
     if (dir == LEFT)
     {
         set_turn_direction(state, dir);
-        usleep(1300000);
+        usleep(1200000);
     }
     else if (dir == RIGHT) 
     {

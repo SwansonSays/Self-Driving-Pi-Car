@@ -16,6 +16,7 @@
 
 #define SONAR_MIN_DISTANCE_M 0.02               /* Min range of sensor: 2 centimeters */
 #define SONAR_MAX_DISTANCE_M 3.0                /* Max range of sensor: 3 meters */
+#define SONAR_MAX_DISTANCE_CM SONAR_MAX_DISTANCE_M * 100.0
 
 /* Establish a timeout to prevent waiting for a reading
  * for more than the longest possible valid range. */
@@ -31,7 +32,6 @@
 
 typedef struct {
     float distance_cm;         /* the actual distance reading */
-    float last_distance_cm;    /* used for determining confidence */
     int confidence;
     uint8_t pin_trig;
     uint8_t pin_echo;

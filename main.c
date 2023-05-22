@@ -158,33 +158,23 @@ int main(int argc, char* argv[])
     /* Directions must be alternated because the motors are mounted
      * in opposite orientations. Both motors will turn forward relative 
      * to the car. */
-    //Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
-    //Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
+    Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
+    Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
 
     float front_obstacle_range_cm = 10.0f;
     float left_obstacle_range_cm = 30.0f;
     while (!terminate)
     {
-    #if 0
-        printf("FRONT %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-        printf("LEFT %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
-        //printf("FRONT: %3.2f \t LEFT %3.2f\n", sonar_args_front->distance, sonar_args_left->distance);
-    #else
+        printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+        printf("LEFT: %5.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
+
         if (object_present(sonar_args_front, front_obstacle_range_cm)) {
             printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-            //avoid_obstacle(&sonar_args_front, &sonar_args_left, &state);
-        }
-        else {
-            printf("NO Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+            avoid_obstacle(&sonar_args_front, &sonar_args_left, &state);
         }
         if (object_present(sonar_args_left, left_obstacle_range_cm)) {
             printf("Object at left %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
         }
-        else {
-            printf("NO Object at left %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
-            //follow_line();
-        }
-    #endif 
         printf("\n\n");
         usleep(1000);
     }
