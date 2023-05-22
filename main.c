@@ -165,17 +165,14 @@ int main(int argc, char* argv[])
     float left_obstacle_range_cm = 30.0f;
     while (!terminate)
     {
-        printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-        printf("LEFT: %5.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
+        //printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+        //printf("LEFT: %5.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
 
         if (object_present(sonar_args_front, front_obstacle_range_cm)) {
-            printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-            avoid_obstacle(&sonar_args_front, &sonar_args_left, &state);
+            //printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+            avoid_obstacle(&sonar_args_front, &sonar_args_left, &state, line_sensor_vals);
         }
-        if (object_present(sonar_args_left, left_obstacle_range_cm)) {
-            printf("Object at left %6.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
-        }
-        printf("\n\n");
+        follow_line(line_sensor_vals, &state);
         usleep(1000);
     }
     pthread_join(sonar_thread_front, NULL);

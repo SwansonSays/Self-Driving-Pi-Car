@@ -174,7 +174,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
-void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state)
+void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[])
 {
     int sleep_time = 1000000;
     float left_distance = 40.0f;
@@ -189,7 +189,6 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     /* Go forward as long as there is an object to the left */
     confidence = 0;
     while (!*(args_left->p_terminate)) {
-        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
         reading = object_present(*args_left, left_distance);
         if (reading == last_reading) {
             if (confidence < 100) {
@@ -213,7 +212,6 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     /* Go forward until the object is detected to the left */
     confidence = 0;
     while (!*(args_left->p_terminate)) {
-        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
         reading = object_present(*args_left, left_distance);
         if (reading == last_reading) {
             if (confidence < 100) {
@@ -256,7 +254,6 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     /* Go forward until the object is detected to the left */
     confidence = 0;
     while (!*(args_left->p_terminate)) {
-        printf("Object on left (%d) (%d) (%d)\n", reading, last_reading, confidence);
         reading = object_present(*args_left, left_distance);
         if (reading == last_reading) {
             if (confidence < 100) {
@@ -274,8 +271,17 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
         usleep(10000);
     }
 
-    Motor_Stop(MOTORA);
-    Motor_Stop(MOTORB);
+    int count = 0;
+    while (count < 3 && !*(args_left->p_terminate))
+    {
+        count = 0;
+        for (int i = 0; i < 5; i++) {
+            count += i;
+        }
+    }
+    printf("LINE DETECTED\n");
+    usleep(sleep_time);
+    turn_90(state, RIGHT);
 }
 
 void set_turn_direction(ProgramState* state, DIR dir)
