@@ -176,7 +176,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 
 void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[])
 {
-    int sleep_time = 1000000;
+    int sleep_time = 500000;
     float left_distance = 40.0f;
 
     int confidence = 0;
@@ -271,12 +271,14 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
         usleep(10000);
     }
 
+    /* Continue forward until the line is detected 
+     * (at least three sensors are active) */
     int count = 0;
     while (count < 3 && !*(args_left->p_terminate))
     {
         count = 0;
         for (int i = 0; i < 5; i++) {
-            count += i;
+            count += line_sensor_vals[i];
         }
     }
     printf("LINE DETECTED\n");
