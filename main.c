@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
 
     float front_obstacle_range_cm = 10.0f;
     float left_obstacle_range_cm = 30.0f;
+
     while (!terminate)
     {
         //printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
@@ -170,7 +171,17 @@ int main(int argc, char* argv[])
 
         if (object_present(&sonar_args_front, front_obstacle_range_cm)) {
             //printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-            avoid_obstacle(&sonar_args_front, &sonar_args_left, &state, line_sensor_vals);
+            Motor_Stop(MOTOR_LEFT);
+            Motor_Stop(MOTOR_RIGHT);
+            usleep(1000000);
+            if (object_present(&sonar_args_front, front_obstacle_range_cm)) {
+                avoid_obstacle(&sonar_args_front, &sonar_args_left, &state, line_sensor_vals);
+            }
+            else {
+                Motor_Run(MOTOR_LEFT, MOTOR_LEFT_FORWARD, state.speed_left);
+                Motor_Run(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, state.speed_right);
+            }
+
         }
         follow_line(line_sensor_vals, &state);
         usleep(1000);

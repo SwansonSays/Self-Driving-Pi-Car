@@ -176,7 +176,7 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
 
 void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[])
 {
-    int sleep_time = 750000;
+    int sleep_time = 0;
     float left_distance = 40.0f;
 
     int confidence = 0;
@@ -185,92 +185,83 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
     bool reading = true;
     bool last_reading = true;
 
+    int attempts = 3;
+
     turn_90(state, RIGHT);
 
     /* Go forward as long as there is an object to the left */
-    confidence = 0;
-    while (!*(args_left->p_terminate)) {
-        reading = object_present(args_left, left_distance);
-        if (reading == last_reading) {
-            if (confidence < 100) {
-                ++confidence;
+    for (int i = 0; i < attempts; i++)
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
+                }
             }
-        }
-        else {
-            confidence /= 2;
-        }
-        last_reading = reading;
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
 
-        if (reading == false && confidence >= confidence_threshold) {
-            break;
+            if (reading == false && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
         }
-        usleep(10000);
     }
     printf("PASSED OBJECT\n");
     usleep(sleep_time);
     turn_90(state, LEFT);
 
-    /* Go forward until the object is detected to the left */
-    confidence = 0;
-    while (!*(args_left->p_terminate)) {
-        reading = object_present(args_left, left_distance);
-        if (reading == last_reading) {
-            if (confidence < 100) {
-                ++confidence;
+    /* Go forward until the object is not detected to the left */
+    for (int i = 0; i < attempts; i++)
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
+                }
             }
-        }
-        else {
-            confidence /= 2;
-        }
-        last_reading = reading;
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
 
-        if (reading == true && confidence >= confidence_threshold) {
-            break;
+            if (reading == true && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
         }
-        usleep(10000);
     }
     /* Go forward as long as there is an object to the left */
-    confidence = 0;
-    while (!*(args_left->p_terminate)) {
-        reading = object_present(args_left, left_distance);
-        if (reading == last_reading) {
-            if (confidence < 100) {
-                ++confidence;
+    for (int i = 0; i < attempts; i++) 
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
+                }
             }
-        }
-        else {
-            confidence /= 2;
-        }
-        last_reading = reading;
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
 
-        if (reading == false && confidence >= confidence_threshold) {
-            break;
+            if (reading == false && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
         }
-        usleep(10000);
     }
     usleep(sleep_time);
 
     turn_90(state, LEFT);
-
-    /* Go forward until the object is detected to the left */
-    confidence = 0;
-    while (!*(args_left->p_terminate)) {
-        reading = object_present(args_left, left_distance);
-        if (reading == last_reading) {
-            if (confidence < 100) {
-                ++confidence;
-            }
-        }
-        else {
-            confidence /= 2;
-        }
-        last_reading = reading;
-
-        if (reading == true && confidence >= confidence_threshold) {
-            break;
-        }
-        usleep(10000);
-    }
 
     /* Continue forward until the line is detected 
      * (at least two sensors are active) */
@@ -324,12 +315,14 @@ void turn_90(ProgramState* state, DIR dir)
     if (dir == LEFT)
     {
         set_turn_direction(state, dir);
-        usleep(1200000);
+        usleep(1100000);
+        //usleep(450000);
     }
     else if (dir == RIGHT) 
     {
         set_turn_direction(state, dir);
-        usleep(1200000);
+        usleep(1000000);
+        //usleep(450000);
     }
     set_turn_direction(state, FORWARD);
 }
