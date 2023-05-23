@@ -45,7 +45,7 @@ float distance_m(time_t time_ns);
 float distance_cm(time_t time_ns);
 
 void* watch_sonar(SonarArgs* args);
-bool object_present(SonarArgs args, float max_distance);
+bool object_present(SonarArgs* args, float max_distance);
 
 
 #endif  /* _SONAR_H */

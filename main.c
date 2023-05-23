@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
         //printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
         //printf("LEFT: %5.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
 
-        if (object_present(sonar_args_front, front_obstacle_range_cm)) {
+        if (object_present(&sonar_args_front, front_obstacle_range_cm)) {
             //printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
             avoid_obstacle(&sonar_args_front, &sonar_args_left, &state, line_sensor_vals);
         }

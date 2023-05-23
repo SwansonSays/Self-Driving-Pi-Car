@@ -136,9 +136,9 @@ void* watch_sonar(SonarArgs* args)
     }
 }
 
-bool object_present(SonarArgs args, float max_distance_cm)
+bool object_present(SonarArgs* args, float max_distance_cm)
 {
-    return (args.distance_cm > 0
-        && args.distance_cm <= max_distance_cm 
-        && args.confidence >= SONAR_CONFIDENCE_THRESHOLD);
+    return (args->distance_cm > 0
+        && args->distance_cm <= max_distance_cm 
+        && args->confidence >= SONAR_CONFIDENCE_THRESHOLD);
 }
