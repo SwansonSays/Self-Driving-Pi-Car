@@ -44,6 +44,11 @@ float distance_m(time_t time_ns)
     return 0.5f * (float)VSOUND_M_NS * time_ns;
 }
 
+
+/*
+ * Calculate the distance in centimeters from
+ * the given time in nanoseconds.
+ */
 float distance_cm(time_t time_ns)
 {
     return distance_m(time_ns) * 100.0f;
@@ -74,6 +79,21 @@ static void decrement_confidence(SonarArgs* args, int delta)
     }
 }
 
+/*
+ * Thread routine to monitor readings from the HC-SR04 sonar module.
+ * The thread is polled at a rate of 20hz. The validity of the reading
+ * can be determined by the confidence level.
+ *
+ * The delta between consecutive readings is used to determine a 
+ * confidence level. If the delta is low, the confidence will increase.
+ * If the delta is high, the confidence is decreased by the amount of
+ * the delta. 
+ *
+ * To prevent stalling due to read faults, a timeout will occur if the
+ * time between trigger and echo is too long. This will set an invalid
+ * reading flag which decreases the confidence level by the number of 
+ * consecutive invalid readings. 
+ */
 void* watch_sonar(SonarArgs* args)
 {
     float distance = 0.0f; 
@@ -154,6 +174,10 @@ void* watch_sonar(SonarArgs* args)
     }
 }
 
+/* 
+ * Check whether an object is currently detected within range 
+ * of the sensor, with a high enough confidence level.
+ */
 bool object_present(SonarArgs* args, float max_distance_cm)
 {
     return (args->distance_cm > 0
