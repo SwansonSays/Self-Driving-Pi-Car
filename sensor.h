@@ -9,7 +9,7 @@
 * Github ID:    ttwartzok
 * Project:      Final Project - Self Driving Car 
 *
-* File:         main.c
+* File:         sensor.h
 *
 * Description:
 *   Declarations for sensor reading functions and related structures. 

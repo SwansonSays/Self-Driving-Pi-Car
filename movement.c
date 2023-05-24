@@ -9,7 +9,7 @@
 * Github ID:    ttwartzok
 * Project:      Final Project - Self Driving Car 
 *
-* File:         main.c
+* File:         movement.c
 *
 * Description:
 *   Implementation for movement related code, including line following and
