@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "movement.h"
 #include "sensor.h"
 
@@ -171,34 +173,154 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
         }
     }
 }
-void turn_ninety(DIRECTION direc,int power){
-        Motor_Stop(MOTORA);
-        Motor_Stop(MOTORB);     
-        clearLS7336RCounter(SPI0_CE0);
-        clearLS7336RCounter(SPI0_CE1);
 
-        if(direc == LEFT){
-                Motor_Change_Direc(MOTORB,BACKWARD);
-                Motor_Increase_Speed(MOTORB,0,power);
-                Motor_Increase_Speed(MOTORA,0,power);		
-		while((readLS7336RCounter(SPI0_CE1)<=67.5)&&(readLS7336RCounter(SPI0_CE0)<=67.5)){
+void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[])
+{
+    int sleep_time = 0;
+    float left_distance = 40.0f;
 
-				
-		}
-		Motor_Stop(MOTORA);
-        	Motor_Stop(MOTORB);
-	}else if( direc == RIGHT){
-                Motor_Change_Direc(MOTORA,BACKWARD);
-                Motor_Increase_Speed(MOTORB,0,power);
-                Motor_Increase_Speed(MOTORA,0,power);
-		while((readLS7336RCounter(SPI0_CE1)<=67.5)&&(readLS7336RCounter(SPI0_CE0)<=67.5)){
+    int confidence = 0;
+    int confidence_threshold = 50;
 
+    bool reading = true;
+    bool last_reading = true;
 
+    int attempts = 3;
+
+    turn_90(state, RIGHT);
+
+    /* Go forward as long as there is an object to the left */
+    for (int i = 0; i < attempts; i++)
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
                 }
-                Motor_Stop(MOTORA);
-                Motor_Stop(MOTORB);
+            }
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
 
+            if (reading == false && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
+        }
+    }
+    printf("PASSED OBJECT\n");
+    usleep(sleep_time);
+    turn_90(state, LEFT);
 
+    /* Go forward until the object is not detected to the left */
+    for (int i = 0; i < attempts; i++)
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
+                }
+            }
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
 
-	}
+            if (reading == true && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
+        }
+    }
+    /* Go forward as long as there is an object to the left */
+    for (int i = 0; i < attempts; i++) 
+    {
+        confidence = 0;
+        while (!*(args_left->p_terminate)) {
+            reading = object_present(args_left, left_distance);
+            if (reading == last_reading) {
+                if (confidence < 100) {
+                    ++confidence;
+                }
+            }
+            else {
+                confidence /= 2;
+            }
+            last_reading = reading;
+
+            if (reading == false && confidence >= confidence_threshold) {
+                break;
+            }
+            usleep(10000);
+        }
+    }
+    usleep(sleep_time);
+
+    turn_90(state, LEFT);
+
+    /* Continue forward until the line is detected 
+     * (at least two sensors are active) */
+    int count = 0;
+    while (count < 2 && !*(args_left->p_terminate))
+    {
+        count = 0;
+        for (int i = 0; i < 5; i++) {
+            count += line_sensor_vals[i];
+        }
+    }
+    printf("LINE DETECTED\n");
+    usleep(sleep_time);
+    turn_90(state, RIGHT);
+}
+
+void set_turn_direction(ProgramState* state, DIR dir)
+{
+    printf("Changing direction ");
+    switch (dir)
+    {
+        case LEFT:
+            printf("LEFT\n");
+            // turn left motor backwards, right forward
+            Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_BACKWARD, 100);
+            Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, 100);
+            break;
+        case RIGHT:
+            printf("RIGHT\n");
+            // turn left motor forward, right backward
+            Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_FORWARD, 100);
+            Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_BACKWARD, 100);
+            break;
+        case FORWARD:
+            printf("FORWARD\n");
+            Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_FORWARD, 100);
+            Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_FORWARD, 100);
+            break;
+        case BACKWARD:
+            printf("BACKWARD\n");
+            Motor_Set_Direction(MOTOR_LEFT, MOTOR_LEFT_BACKWARD, 100);
+            Motor_Set_Direction(MOTOR_RIGHT, MOTOR_RIGHT_BACKWARD, 100);
+            break;
+        default:
+            break;
+    }
+}
+
+void turn_90(ProgramState* state, DIR dir)
+{
+    if (dir == LEFT)
+    {
+        set_turn_direction(state, dir);
+        usleep(1100000);
+    }
+    else if (dir == RIGHT) 
+    {
+        set_turn_direction(state, dir);
+        usleep(1000000);
+    }
+    set_turn_direction(state, FORWARD);
 }

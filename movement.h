@@ -3,6 +3,8 @@
 
 
 #include <stdint.h>  /* uint8_t */
+#include <stdbool.h>
+#include "sonar.h"
 #include "definitions.h"
 #include "MotorDriver.h"
 
@@ -13,26 +15,42 @@
 #define CONFIDENCE_THRESHOLD 8
 #define CONFIDENCE_MAX 100
 
-typedef enum 
-{
-    STRAIGHT = 0,
-    LEFT,
-    RIGHT
-} DIRECTION;
+/* Angles of view if checking for obstacle in front, left, or right */
+#define FRONTVIEW_LEFT 315.0f
+#define FRONTVIEW_RIGHT 45.0f
+
+#define LEFTVIEW_LEFT 180.0f
+#define LEFTVIEW_RIGHT 15.0f
+
+#define RIGHTVIEW_LEFT 0.0f
+#define RIGHTVIEW_RIGHT 180.0f
+
+#define OBSTACLE_DISTANCE 475.0f
+
+typedef enum {
+    LINE,
+    OBSTACLE
+} MODE;
 
 typedef struct
 {
-    DIRECTION last_dir;
-    DIRECTION last_req;
+    DIR last_dir;
+    DIR last_req;
+    MODE mode;
     UBYTE speed_left;
     UBYTE speed_right;
     uint8_t inner_confidence;
     uint8_t outer_confidence;
+    bool* p_terminate;
 } ProgramState;
 
 void turn_left(ProgramState* state, uint8_t* confidence);
 void turn_right(ProgramState* state, uint8_t* confidence);
 void go_straight(ProgramState* state, uint8_t* confidence);
-void turn_ninety(DIRECTION direc);
+
+void set_turn_direction(ProgramState* state, DIR dir);
+void turn_90(ProgramState* state, DIR dir);
+
+void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[]);
 
 #endif  /* _MOVEMENT_H */

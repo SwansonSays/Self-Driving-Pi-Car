@@ -13,6 +13,12 @@
 
 
 typedef struct {
+  uint8_t value;
+  uint8_t last_value;
+  uint8_t confidence;
+} Sensor;
+
+typedef struct {
     uint8_t* p_sensor_val;
     uint8_t gpio_pin;
     bool* p_terminate;
@@ -25,8 +31,8 @@ typedef struct {
 } CounterArgs;
 
 void read_sensor(SensorArgs* args);
-
 void read_counter(CounterArgs* args);
+
 
 
 #endif  /* _SENSOR_H */
