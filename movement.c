@@ -193,9 +193,21 @@ void follow_line(uint8_t line_sensor_vals[], ProgramState* state)
     }
 }
 
+/**
+ * Avoid an obstacle using input from the sonar sensors.
+ * Navigate around the obstacle by moving in a large rectangle around the object's bounding region.\
+ * 1. Turn right, and move forward until past the object
+ * 2. Turn left. Move until the object is detected, and continue until past the object.
+ * 3. Turn left. Move forward until the line is deteced.
+ * 4. Turn right. Return control to the line following routine.
+ *
+ * To mitigate errors in the obstacle sensors, several consecutive readings
+ * must indicate the presence (or lack of) an obstacle before action is taken.
+ * This process is attempted multiple times to account for possible misinterpretations
+ * of the sensor readings.
+ */
 void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* state, uint8_t line_sensor_vals[])
 {
-    int sleep_time = 0;
     float left_distance = 40.0f;
 
     int confidence = 0;
@@ -231,7 +243,6 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
         }
     }
     printf("PASSED OBJECT\n");
-    usleep(sleep_time);
     turn_90(state, LEFT);
 
     /* Go forward until the object is not detected to the left */
@@ -278,7 +289,6 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
             usleep(10000);
         }
     }
-    usleep(sleep_time);
 
     turn_90(state, LEFT);
 
@@ -293,10 +303,13 @@ void avoid_obstacle(SonarArgs* args_front, SonarArgs* args_left, ProgramState* s
         }
     }
     printf("LINE DETECTED\n");
-    usleep(sleep_time);
     turn_90(state, RIGHT);
 }
 
+/**
+ * Initiate a turn in the specified direction by setting the motor 
+ * directions with respect to their mounting orientations.
+ */
 void set_turn_direction(ProgramState* state, DIR dir)
 {
     printf("Changing direction ");
@@ -329,6 +342,9 @@ void set_turn_direction(ProgramState* state, DIR dir)
     }
 }
 
+/**
+ * Perform a 90 degree turn in the specified direction.
+ */
 void turn_90(ProgramState* state, DIR dir)
 {
     if (dir == LEFT)
