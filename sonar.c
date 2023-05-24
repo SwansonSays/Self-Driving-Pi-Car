@@ -1,3 +1,21 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         sonar.c
+*
+* Description:
+*   Function definitions for interaction with the HC-SR04 sonar module. 
+******************************************************************************/
+
+
 #include <math.h>   /* fabs() */
 #include "sonar.h"
 
@@ -142,3 +160,4 @@ bool object_present(SonarArgs* args, float max_distance_cm)
         && args->distance_cm <= max_distance_cm 
         && args->confidence >= SONAR_CONFIDENCE_THRESHOLD);
 }
+

@@ -1,3 +1,21 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         sonar.h
+*
+* Description:
+*   Declarations and constants for interaction with the HC-SR04 sonar module. 
+******************************************************************************/
+
+
 #ifndef _SONAR_H
 #define _SONAR_H
 
