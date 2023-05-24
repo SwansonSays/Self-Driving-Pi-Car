@@ -69,7 +69,6 @@ void init_program_state(ProgramState* state)
     state->speed_right = 100;
     state->inner_confidence = 0;
     state->outer_confidence = 0;
-    state->mode = LINE;
     state->p_terminate = &terminate;
 }
 
