@@ -1,3 +1,21 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         movement.h
+*
+* Description:
+*   Declarations for movement related code.  
+******************************************************************************/
+
+
 #ifndef _MOVEMENT_H
 #define _MOVEMENT_H
 

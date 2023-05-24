@@ -1,3 +1,21 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         main.c
+*
+* Description:
+*   Definitions for sensor reading functions. 
+******************************************************************************/
+
+
 #include "sensor.h"
 #include <pigpio.h>
 #include <unistd.h>     /* usleep() */

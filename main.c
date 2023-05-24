@@ -1,3 +1,21 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         main.c
+*
+* Description:
+*   Main file for self driving car. Contains initialization and main loop.
+******************************************************************************/
+
+
 #include <pthread.h>
 #include <stdbool.h>
 #include <signal.h>
@@ -166,14 +184,12 @@ int main(int argc, char* argv[])
 
     while (!terminate)
     {
-        //printf("FRONT: %5.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
-        //printf("LEFT: %5.2f (%d)\n", sonar_args_left.distance_cm, sonar_args_left.confidence);
-
         if (object_present(&sonar_args_front, front_obstacle_range_cm)) {
-            //printf("Object at front %6.2f (%d)\n", sonar_args_front.distance_cm, sonar_args_front.confidence);
+            /* Wait for 1 second to see if the object goes away */
             Motor_Stop(MOTOR_LEFT);
             Motor_Stop(MOTOR_RIGHT);
             usleep(1000000);
+            /* If the object is still present, go around it */
             if (object_present(&sonar_args_front, front_obstacle_range_cm)) {
                 avoid_obstacle(&sonar_args_front, &sonar_args_left, &state, line_sensor_vals);
             }

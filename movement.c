@@ -1,3 +1,22 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         main.c
+*
+* Description:
+*   Implementation for movement related code, including line following and
+*   obstacle avoidance.
+******************************************************************************/
+
+
 #include <time.h>
 
 #include "movement.h"

@@ -1,3 +1,20 @@
+ /******************************************************************************
+* Class:        CSC-615-01 Spring 2023
+*
+* Names:        Zachary Colbert
+*               Sajan Gurung
+*               Robert Swanson
+*               Tyler Wartzok
+*
+* Github ID:    ttwartzok
+* Project:      Final Project - Self Driving Car 
+*
+* File:         main.c
+*
+* Description:
+*   Declarations for sensor reading functions and related structures. 
+******************************************************************************/
+
 #ifndef _SENSOR_H
 #define _SENSOR_H
 
@@ -32,7 +49,6 @@ typedef struct {
 
 void read_sensor(SensorArgs* args);
 void read_counter(CounterArgs* args);
-
 
 
 #endif  /* _SENSOR_H */
