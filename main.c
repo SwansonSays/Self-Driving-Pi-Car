@@ -132,10 +132,6 @@ int main(int argc, char* argv[])
     SensorArgs* line_sensor_args[NUM_LINE_SENSORS];
     pthread_t line_sensor_threads[NUM_LINE_SENSORS];
 
-    volatile double hall_sensor_vals[NUM_MOTORS] = { 0 };
-    CounterArgs* hall_sensor_args[NUM_MOTORS];
-    pthread_t hall_sensor_threads[NUM_MOTORS];
-
     pthread_t sonar_thread_front;
     pthread_t sonar_thread_left;
 
@@ -159,15 +155,6 @@ int main(int argc, char* argv[])
         line_sensor_args[i]->gpio_pin = line_sensor_pins[i];
         line_sensor_args[i]->p_terminate = &terminate;
         pthread_create(&line_sensor_threads[i], NULL, read_sensor, (void*)line_sensor_args[i]);
-    }
-    /* Create thread routines for the motors */
-    for (size_t i = 0; i < NUM_MOTORS; i++)
-    {
-        hall_sensor_args[i] = malloc(sizeof(CounterArgs));
-        hall_sensor_args[i]->speed_val = &hall_sensor_vals[i];
-        hall_sensor_args[i]->chip_enable = counter_pins[i];
-        hall_sensor_args[i]->p_terminate = &terminate;
-        pthread_create(&hall_sensor_threads[i], NULL, read_counter, (void*)hall_sensor_args[i]);
     }
     /* Create thread routines for the sonar sensors */
     pthread_create(&sonar_thread_front, NULL, watch_sonar, (void*)&sonar_args_front);
@@ -212,14 +199,6 @@ int main(int argc, char* argv[])
         free(line_sensor_args[i]);
         line_sensor_args[i] = NULL;
     }
-    /* Clean up the motor thread routines and memory */
-    for (size_t i = 0; i < 2; i++)
-    {
-        pthread_join(hall_sensor_threads[i], NULL);
-        free(hall_sensor_args[i]);
-        hall_sensor_args[i] = NULL;
-    } 
-
     Motor_Stop(MOTORA);
     Motor_Stop(MOTORB);
 
